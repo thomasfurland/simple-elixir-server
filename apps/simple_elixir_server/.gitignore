@@ -22,8 +22,5 @@ erl_crash.dump
 # Temporary files, for example, from tests.
 /tmp/
 
-# Ignore environment configuration.
-.env*
-
-# Ignore macOS specific files
-.DS_Store
+# Ignore package tarball (built via "mix hex.build").
+simple_elixir_server-*.tar
