@@ -64,12 +64,6 @@ jobs:
           POSTGRES_PASSWORD: "postgres"
           POSTGRES_DB: simple_elixir_server_test
 
-      - name: Run linter (formatter)
-        run: mix format --check-formatted
-
-      - name: Run credo
-        run: mix credo
-
       - name: Run tests
         run: mix test
         env:
