@@ -24,6 +24,7 @@ erl_crash.dump
 
 # Ignore environment configuration.
 .env*
+.infra/terraform/terraform.tfvars
 
 # Ignore macOS specific files
 .DS_Store
