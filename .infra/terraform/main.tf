@@ -1,4 +1,5 @@
 terraform {
+  backend "gcs" {}
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -13,28 +14,28 @@ provider "google" {
 }
 
 resource "google_compute_network" "vpc_network" {
-  name                    = "simple-elixir-server-network"
+  name                    = "simple-elixir-network"
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "default" {
-  name          = "simple-elixir-server-subnetwork"
+  name          = "simple-elixir-subnetwork"
   ip_cidr_range = "10.0.1.0/24"
   network       = google_compute_network.vpc_network.id
 }
 
 resource "google_compute_address" "static" {
-  name = "simple-elixir-server-static-ip"
+  name = "simple-elixir-static-ip"
 }
 
 resource "google_compute_instance" "default" {
-  name         = var.instance_name
-  machine_type = var.machine_type
+  name         = "simple-elixir-instance"
+  machine_type = "e2-micro"
   zone         = var.zone
 
   boot_disk {
     initialize_params {
-      image = "${var.image_project}/${var.image_family}"
+      image = "ubuntu-os-cloud/ubuntu-minimal-2204-lts"
     }
   }
 
@@ -47,31 +48,28 @@ resource "google_compute_instance" "default" {
   }
 }
 
-resource "google_sql_database_instance" "default" {
-  name             = var.db_instance_name
-  database_version = "POSTGRES_14"
+resource "google_sql_database_instance" "postgres" {
+  name             = "simple-elixir-db"
+  database_version = "POSTGRES_15"
   region           = var.region
 
   settings {
-    tier = "db-g1-small"
+    tier = "db-f1-micro"
   }
+
+  deletion_protection = false  # we tear down after done for the day.
 }
+
 
 resource "google_sql_database" "default" {
-  name     = var.db_name
-  instance = google_sql_database_instance.default.name
+  name     = "appdb"
+  instance = google_sql_database_instance.postgres.name
 }
 
-resource "google_sql_user" "default" {
-  name     = var.db_user
-  instance = google_sql_database_instance.default.name
+resource "google_sql_user" "app" {
+  name     = "appuser"
+  instance = google_sql_database_instance.postgres.name
   password = var.db_password
-}
-
-resource "google_artifact_registry_repository" "default" {
-  location      = var.region
-  repository_id = var.artifact_registry_repository_id
-  format        = "DOCKER"
 }
 
 resource "google_secret_manager_secret" "default" {
