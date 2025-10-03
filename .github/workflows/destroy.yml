@@ -12,6 +12,7 @@ jobs:
     env:
       TF_VAR_project_id:  ${{ vars.GCP_PROJECT_ID }}
       TF_VAR_region:      ${{ vars.GCP_REGION }}
+      TF_VAR_zone:      ${{ vars.GCP_ZONE }}
       TF_VAR_db_password: ${{ secrets.DATABASE_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
