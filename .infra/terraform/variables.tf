@@ -18,8 +18,3 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
-
-variable "secret_id" {
-  description = "The ID of the Secret Manager secret."
-  type        = string
-}

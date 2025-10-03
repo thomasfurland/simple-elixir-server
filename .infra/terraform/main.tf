@@ -71,11 +71,3 @@ resource "google_sql_user" "app" {
   instance = google_sql_database_instance.postgres.name
   password = var.db_password
 }
-
-resource "google_secret_manager_secret" "default" {
-  secret_id = var.secret_id
-
-  replication {
-    automatic = true
-  }
-}
