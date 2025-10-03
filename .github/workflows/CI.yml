@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: "postgres"
+          POSTGRES_DB: simple_elixir_server_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: 'main-otp-28' # From .tool-versions
+          otp-version: '28.1'      # From .tool-versions
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -q -U postgres; do
+            >&2 echo "Postgres is unavailable - sleeping"
+            sleep 1
+          done
+
+      - name: Create database
+        run: mix ecto.create
+        env:
+          MIX_ENV: test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: "postgres"
+          POSTGRES_DB: simple_elixir_server_test
+
+      - name: Run migrations
+        run: mix ecto.migrate
+        env:
+          MIX_ENV: test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: "postgres"
+          POSTGRES_DB: simple_elixir_server_test
+
+      - name: Run tests
+        run: mix test
+        env:
+          MIX_ENV: test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: "postgres"
+          POSTGRES_DB: simple_elixir_server_test
