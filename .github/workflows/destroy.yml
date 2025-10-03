@@ -31,6 +31,6 @@ jobs:
             -backend-config="prefix=infra-elixir"
 
       - name: Terraform Destroy
-        working-directory: infra/terraform
+        working-directory: .infra/terraform
         run: terraform destroy -auto-approve -input=false -no-color
 

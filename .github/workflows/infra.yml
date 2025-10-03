@@ -30,14 +30,14 @@ jobs:
             -backend-config="prefix=infra-elixir"
 
       - name: Terraform Validate
-        working-directory: infra/terraform
+        working-directory: .infra/terraform
         run: terraform validate -no-color
 
       - name: Terraform Plan
-        working-directory: infra/terraform
+        working-directory: .infra/terraform
         run: terraform plan -input=false -no-color -out=tfplan
 
       - name: Terraform Apply
-        working-directory: infra/terraform
+        working-directory: .infra/terraform
         run: terraform apply -auto-approve -input=false -no-color tfplan
 
