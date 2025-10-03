@@ -1,0 +1,69 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: 'main-otp-28'
+          otp-version: '28.1'
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+
+      - name: Install dependencies
+        run: mix deps.get --only prod
+        env:
+          MIX_ENV: prod
+
+      - name: Compile
+        run: mix compile
+        env:
+          MIX_ENV: prod
+
+      - name: Build release
+        run: mix release
+        env:
+          MIX_ENV: prod
+
+      - name: Create release tarball
+        run: |
+          VERSION=$(grep 'version:' mix.exs | sed 's/.*version: "\(.*\)".*/\1/')
+          RELEASE_NAME="simple_elixir_server-${VERSION}-${GITHUB_SHA:0:7}.tar.gz"
+          cd _build/prod/rel/simple_elixir_server
+          tar -czf "/tmp/${RELEASE_NAME}" .
+          echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
+          echo "RELEASE_PATH=/tmp/${RELEASE_NAME}" >> $GITHUB_ENV
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Upload to GCS
+        run: |
+          gsutil cp ${{ env.RELEASE_PATH }} gs://${{ vars.TF_STATE_BUCKET }}/releases-elixir/${{ env.RELEASE_NAME }}
+          echo "Release uploaded: gs://${{ vars.TF_STATE_BUCKET }}/releases-elixir/${{ env.RELEASE_NAME }}"
