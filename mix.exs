@@ -8,7 +8,14 @@ defmodule SimpleElixirServer.Umbrella.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      releases: [
+        simple_elixir_server: [
+          applications: [
+            simple_elixir_server_web: :permanent
+          ]
+        ]
+      ]
     ]
   end
 
