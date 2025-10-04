@@ -84,6 +84,16 @@ jobs:
           sed "s|__PROJECT_ID__|$GCP_PROJECT_ID|g" \
             .infra/ansible/inventory.gcp.yml > /tmp/inventory.gcp.yml
 
+      - name: Test direct SSH connection
+        env:
+          GCP_ZONE: ${{ vars.GCP_ZONE }}
+        run: |
+          IP=$(gcloud compute instances describe simple-elixir-instance \
+            --zone "$GCP_ZONE" \
+            --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
+          echo "Testing SSH to $IP as ubuntu..."
+          ssh -vvv -i ~/.ssh/ansible_deploy_key -o StrictHostKeyChecking=no ubuntu@$IP "echo 'SSH works!'" || echo "SSH failed"
+
       - name: Run Ansible deployment
         run: |
           ansible-playbook \
