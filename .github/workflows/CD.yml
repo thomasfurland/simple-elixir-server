@@ -70,7 +70,7 @@ jobs:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
         run: |
           sed "s|__PROJECT_ID__|$GCP_PROJECT_ID|g" \
-            .infra/ansible/inventory.gcp.tpl.yml > /tmp/inventory.gcp.yml
+            .infra/ansible/inventory.gcp.yml > /tmp/inventory.gcp.yml
 
       - name: Test inventory
         run: |
