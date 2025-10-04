@@ -60,6 +60,14 @@ jobs:
           printf '%s' '${{ secrets.GCP_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
           chmod 600 /tmp/gcp-key.json
 
+      - name: Sanity check creds + vars
+        run: |
+          test -s /tmp/gcp-key.json
+          jq -r .project_id /tmp/gcp-key.json || true
+          echo "GCP_PROJECT_ID=$GCP_PROJECT_ID"
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+
       - name: Verify Ansible setup
         run: |
           ansible --version
