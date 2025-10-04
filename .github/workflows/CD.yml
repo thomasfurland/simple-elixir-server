@@ -73,8 +73,8 @@ jobs:
             .infra/ansible/inventory.gcp.yml > /tmp/inventory.gcp.yml
 
       # (optional) ensure nc is present
-      - name: Install netcat for port check
-        run: sudo apt-get update && sudo apt-get install -y netcat
+      - name: "Install netcat for port check"
+        run: sudo apt-get update && sudo apt-get install -y netcat-openbsd
 
       - name: Preflight GCP SSH reachability
         env:
