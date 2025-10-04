@@ -42,6 +42,11 @@ jobs:
         env:
           MIX_ENV: prod
 
+      - name: Compile static assets
+        run: mix assets.deploy
+        env:
+          MIX_ENV: prod
+
       - name: Build release
         run: mix release
         env:
