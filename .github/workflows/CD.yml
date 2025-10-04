@@ -80,6 +80,8 @@ jobs:
           GCS_BUCKET: ${{ vars.TF_STATE_BUCKET }}
           RELEASE_NAME: ${{ steps.release.outputs.release_name }}
           ANSIBLE_HOST_KEY_CHECKING: 'False'
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          DATABASE_URL: ${{ secrets.SIMPLE_ELIXIR_DB_URL }}
 
       - name: Debug app status
         env:

@@ -78,6 +78,9 @@
       become_user: ubuntu
       environment:
         HOME: /home/ubuntu
+        SECRET_KEY_BASE: "{{ lookup('env', 'SECRET_KEY_BASE') }}"
+        DATABASE_URL: "{{ lookup('env', 'DATABASE_URL') }}"
+        PORT: "4000"
 
     - name: Clean up downloaded tarball
       file:
