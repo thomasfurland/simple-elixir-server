@@ -47,7 +47,7 @@ jobs:
       - name: Write SSH key from secret
         run: |
           mkdir -p ~/.ssh
-          printf '%s' '${{ secrets.GCP_DEPLOY_SSH_KEY }}' > ~/.ssh/ansible_deploy_key
+          printf '%s' '${{ secrets.GCP_DEPLOY_SSH_PRIVATE_KEY }}' > ~/.ssh/ansible_deploy_key
           chmod 600 ~/.ssh/ansible_deploy_key
 
       - name: Write GCP credentials to file
