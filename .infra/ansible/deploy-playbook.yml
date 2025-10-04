@@ -32,11 +32,18 @@
         fi
       ignore_errors: yes
 
-    - name: Download release from GCS
+    - name: Download release from GCS to local
       shell: |
         gsutil cp gs://{{ release_bucket }}/releases-elixir/{{ release_file }} /tmp/{{ release_file }}
-      environment:
-        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: "{{ lookup('env', 'GCP_SERVICE_ACCOUNT_FILE') }}"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Copy release to remote server
+      copy:
+        src: /tmp/{{ release_file }}
+        dest: /tmp/{{ release_file }}
+        owner: ubuntu
+        group: ubuntu
 
     - name: Clean existing release files
       file:
