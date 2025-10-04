@@ -1,0 +1,99 @@
+name: Database Migrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Migration action'
+        required: true
+        type: choice
+        options:
+          - migrate
+          - rollback
+        default: 'migrate'
+      rollback_version:
+        description: 'Rollback version (required for rollback)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    environment: prod
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Ansible and GCP dependencies
+        run: |
+          pip install --upgrade pip
+          pip install "ansible>=9,<10" "requests>=2.31,<3" "google-auth>=2.22,<3"
+
+      - name: Install Ansible GCP collection
+        run: |
+          ansible-galaxy collection install "google.cloud:>=1.1.0,<2.0.0"
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Write SSH key from secret
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' '${{ secrets.GCP_DEPLOY_SSH_PRIVATE_KEY }}' > ~/.ssh/ansible_deploy_key
+          chmod 600 ~/.ssh/ansible_deploy_key
+
+      - name: Write GCP credentials to file
+        run: |
+          printf '%s' '${{ secrets.GCP_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
+          chmod 600 /tmp/gcp-key.json
+
+      - name: Build inventory from template
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+        run: |
+          sed "s|__PROJECT_ID__|$GCP_PROJECT_ID|g" \
+            .infra/ansible/inventory.gcp.yml > /tmp/inventory.gcp.yml
+
+      - name: Validate inputs for rollback
+        if: inputs.action == 'rollback'
+        run: |
+          if [ -z "${{ inputs.rollback_version }}" ]; then
+            echo "Error: rollback_version is required when action is rollback"
+            exit 1
+          fi
+
+      - name: Run database migration
+        run: |
+          cd .infra/ansible
+          ansible-playbook \
+            -i /tmp/inventory.gcp.yml \
+            migrate-playbook.yml \
+            -v
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
+          ANSIBLE_HOST_KEY_CHECKING: 'False'
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          DATABASE_URL: ${{ secrets.SIMPLE_ELIXIR_DB_URL }}
+          MIGRATION_ACTION: ${{ inputs.action }}
+          ROLLBACK_VERSION: ${{ inputs.rollback_version }}
+
+      - name: Clean up credentials
+        if: always()
+        run: |
+          rm -f /tmp/gcp-key.json
+          rm -f ~/.ssh/ansible_deploy_key*
