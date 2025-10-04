@@ -69,10 +69,10 @@ jobs:
 
       - name: Run Ansible deployment
         run: |
+          cd .infra/ansible
           ansible-playbook \
             -i /tmp/inventory.gcp.yml \
-            .infra/ansible/deploy-playbook.yml \
-            --private-key ~/.ssh/ansible_deploy_key \
+            deploy-playbook.yml \
             -vvv
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
