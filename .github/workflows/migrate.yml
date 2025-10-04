@@ -1,7 +1,6 @@
 name: Database Migrations
 
 on:
-  pull_request:
   workflow_dispatch:
     inputs:
       action:
