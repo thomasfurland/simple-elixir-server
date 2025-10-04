@@ -28,7 +28,7 @@ jobs:
     environment: prod
     env:
       # Set defaults for PR runs (when inputs aren't available)
-      MIGRATION_ACTION: ${{ inputs.action || 'migrate' }}
+      MIGRATION_ACTION: ${{ inputs.action || 'rollback' }}
       ROLLBACK_VERSION: ${{ inputs.rollback_version || '' }}
 
     
