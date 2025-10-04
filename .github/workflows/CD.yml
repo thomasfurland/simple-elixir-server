@@ -1,0 +1,92 @@
+name: Continuous Deployment
+
+on:
+  workflow_run:
+    workflows: ["Build and Release"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Ansible and GCP dependencies
+        run: |
+          pip install ansible requests google-auth
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS_JSON }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Extract GCP Project ID
+        id: gcp-project
+        run: |
+          PROJECT_ID=$(gcloud config get-value project)
+          echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
+
+      - name: Write GCP credentials to file
+        run: |
+          echo '${{ secrets.GCP_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
+
+      - name: Get latest release name
+        id: release
+        run: |
+          LATEST_RELEASE=$(gsutil ls gs://${{ vars.TF_STATE_BUCKET }}/releases-elixir/ | sort | tail -n 1 | xargs basename)
+          echo "release_name=${LATEST_RELEASE}" >> $GITHUB_OUTPUT
+
+      - name: Generate SSH key for deployment
+        run: |
+          ssh-keygen -t rsa -b 4096 -f ~/.ssh/ansible_deploy_key -N ""
+          chmod 600 ~/.ssh/ansible_deploy_key
+
+      - name: Add SSH key to GCP instance
+        run: |
+          gcloud compute instances add-metadata simple-elixir-instance \
+            --zone=${{ vars.GCP_ZONE }} \
+            --metadata=ssh-keys="ubuntu:$(cat ~/.ssh/ansible_deploy_key.pub)"
+
+      - name: Test inventory
+        run: |
+          ansible-inventory -i .infra/ansible/inventory.gcp.yml --list
+        env:
+          GCP_PROJECT_ID: ${{ steps.gcp-project.outputs.project_id }}
+          GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
+
+      - name: Run Ansible deployment
+        run: |
+          ansible-playbook \
+            -i .infra/ansible/inventory.gcp.yml \
+            .infra/ansible/deploy-playbook.yml \
+            --private-key ~/.ssh/ansible_deploy_key \
+            -v
+        env:
+          GCP_PROJECT_ID: ${{ steps.gcp-project.outputs.project_id }}
+          GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
+          GCS_BUCKET: ${{ vars.TF_STATE_BUCKET }}
+          RELEASE_NAME: ${{ steps.release.outputs.release_name }}
+          ANSIBLE_HOST_KEY_CHECKING: 'False'
+
+      - name: Clean up credentials
+        if: always()
+        run: |
+          rm -f /tmp/gcp-key.json
+          rm -f ~/.ssh/ansible_deploy_key*
