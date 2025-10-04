@@ -23,7 +23,12 @@ jobs:
 
       - name: Install Ansible and GCP dependencies
         run: |
-          pip install ansible requests google-auth
+          pip install --upgrade pip
+          pip install "ansible>=9,<10" "requests>=2.31,<3" "google-auth>=2.22,<3"
+
+      - name: Install Ansible GCP collection
+        run: |
+          ansible-galaxy collection install "google.cloud:>=1.1.0,<2.0.0"
 
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
@@ -54,9 +59,14 @@ jobs:
             --zone=${{ vars.GCP_ZONE }} \
             --metadata=ssh-keys="ubuntu:$(cat ~/.ssh/ansible_deploy_key.pub)"
 
+      - name: Verify Ansible setup
+        run: |
+          ansible --version
+          ansible-galaxy collection list | grep google.cloud
+
       - name: Test inventory
         run: |
-          ansible-inventory -i .infra/ansible/inventory.gcp.yml --list
+          ansible-inventory -i .infra/ansible/inventory.gcp.yml --list -vvv
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
