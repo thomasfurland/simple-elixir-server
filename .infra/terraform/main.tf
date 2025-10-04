@@ -28,10 +28,32 @@ resource "google_compute_address" "static" {
   name = "simple-elixir-static-ip"
 }
 
+# firewall: allow SSH to instances with tag "allow-ssh"
+resource "google_compute_firewall" "allow_ssh_ci" {
+  name    = "allow-ssh-ci"
+  network = "default"
+
+  direction   = "INGRESS"
+  priority    = 1000
+  source_ranges = ["0.0.0.0/0"] # tighten if you have fixed egress IPs
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  target_tags = ["allow-ssh"]
+}
+
 resource "google_compute_instance" "default" {
   name         = "simple-elixir-instance"
   machine_type = "e2-micro"
   zone         = var.zone
+
+  tags = ["allow-ssh"]
+
+  metadata = {
+    enable-oslogin = "FALSE"
+  }
 
   boot_disk {
     initialize_params {
