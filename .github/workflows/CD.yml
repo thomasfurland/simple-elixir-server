@@ -2,7 +2,6 @@ name: Continuous Deployment
 
 on:
   workflow_dispatch:
-  pull_request:
 
 permissions:
   contents: read
@@ -37,53 +36,51 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
-
-      - name: Write GCP credentials to file
-        run: |
-          echo '${{ secrets.GCP_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
-
+      
       - name: Get latest release name
         id: release
         run: |
           LATEST_RELEASE=$(gsutil ls -l gs://${{ vars.TF_STATE_BUCKET }}/releases-elixir/*.tar.gz | grep -v TOTAL | sort -k2 -r | head -n 1 | awk '{print $NF}' | xargs basename)
           echo "release_name=${LATEST_RELEASE}" >> $GITHUB_OUTPUT
 
-      - name: Generate SSH key for deployment
+      - name: Write SSH key from secret
         run: |
-          ssh-keygen -t rsa -b 4096 -f ~/.ssh/ansible_deploy_key -N ""
+          mkdir -p ~/.ssh
+          printf '%s' '${{ secrets.GCP_DEPLOY_SSH_PRIVATE_KEY }}' > ~/.ssh/ansible_deploy_key
           chmod 600 ~/.ssh/ansible_deploy_key
 
-      - name: Add SSH key to GCP instance
+      - name: Write GCP credentials to file
         run: |
-          gcloud compute instances add-metadata simple-elixir-instance \
-            --zone=${{ vars.GCP_ZONE }} \
-            --metadata=ssh-keys="ubuntu:$(cat ~/.ssh/ansible_deploy_key.pub)"
+          printf '%s' '${{ secrets.GCP_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
+          chmod 600 /tmp/gcp-key.json
 
       - name: Verify Ansible setup
         run: |
           ansible --version
           ansible-galaxy collection list | grep google.cloud
 
-      - name: Test inventory
-        run: |
-          ansible-inventory -i .infra/ansible/inventory.gcp.yml --list -vvv
+      - name: Build inventory from template
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-          GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
+        run: |
+          sed "s|__PROJECT_ID__|$GCP_PROJECT_ID|g" \
+            .infra/ansible/inventory.gcp.yml > /tmp/inventory.gcp.yml
 
       - name: Run Ansible deployment
         run: |
+          cd .infra/ansible
           ansible-playbook \
-            -i .infra/ansible/inventory.gcp.yml \
-            .infra/ansible/deploy-playbook.yml \
-            --private-key ~/.ssh/ansible_deploy_key \
-            -v
+            -i /tmp/inventory.gcp.yml \
+            deploy-playbook.yml \
+            -vvv
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
           GCS_BUCKET: ${{ vars.TF_STATE_BUCKET }}
           RELEASE_NAME: ${{ steps.release.outputs.release_name }}
           ANSIBLE_HOST_KEY_CHECKING: 'False'
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          DATABASE_URL: ${{ secrets.SIMPLE_ELIXIR_DB_URL }}
 
       - name: Clean up credentials
         if: always()
