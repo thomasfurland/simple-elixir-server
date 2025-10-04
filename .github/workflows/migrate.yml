@@ -1,7 +1,6 @@
 name: Database Migrations
 
 on:
-  pull_request:
   workflow_dispatch:
     inputs:
       action:
@@ -26,11 +25,6 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     environment: prod
-    env:
-      # Set defaults for PR runs (when inputs aren't available)
-      MIGRATION_ACTION: ${{ inputs.action || 'rollback' }}
-      ROLLBACK_VERSION: ${{ inputs.rollback_version || '' }}
-
     
     steps:
       - uses: actions/checkout@v4
