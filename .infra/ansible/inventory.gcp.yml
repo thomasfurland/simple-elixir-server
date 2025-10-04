@@ -1,5 +1,5 @@
 plugin: google.cloud.gcp_compute
-projects: ["stone-arcade-388210"]
+projects: ["__PROJECT_ID__"]
 auth_kind: serviceaccount
 service_account_file: "/tmp/gcp-key.json"
 filters: ['name = "simple-elixir-instance"']

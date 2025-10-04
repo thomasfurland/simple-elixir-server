@@ -65,17 +65,21 @@ jobs:
           ansible --version
           ansible-galaxy collection list | grep google.cloud
 
-      - name: Test inventory
-        run: |
-          ansible-inventory -i .infra/ansible/inventory.gcp.yml --list -vvv
+      - name: Build inventory from template
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-          GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
+        run: |
+          sed "s|__PROJECT_ID__|$GCP_PROJECT_ID|g" \
+            .infra/ansible/inventory.gcp.tpl.yml > /tmp/inventory.gcp.yml
+
+      - name: Test inventory
+        run: |
+          ansible-inventory -i /tmp/inventory.gcp.yml --list -vvv
 
       - name: Run Ansible deployment
         run: |
           ansible-playbook \
-            -i .infra/ansible/inventory.gcp.yml \
+            -i /tmp/inventory.gcp.yml \
             .infra/ansible/deploy-playbook.yml \
             --private-key ~/.ssh/ansible_deploy_key \
             -v
