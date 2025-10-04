@@ -1,10 +1,9 @@
 name: Continuous Deployment
 
 on:
-  workflow_run:
-    workflows: ["Build and Release"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -15,7 +14,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: prod
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     
     steps:
       - uses: actions/checkout@v4
@@ -37,12 +35,6 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Extract GCP Project ID
-        id: gcp-project
-        run: |
-          PROJECT_ID=$(gcloud config get-value project)
-          echo "project_id=${PROJECT_ID}" >> $GITHUB_OUTPUT
-
       - name: Write GCP credentials to file
         run: |
           echo '${{ secrets.GCP_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
@@ -50,7 +42,7 @@ jobs:
       - name: Get latest release name
         id: release
         run: |
-          LATEST_RELEASE=$(gsutil ls gs://${{ vars.TF_STATE_BUCKET }}/releases-elixir/ | sort | tail -n 1 | xargs basename)
+          LATEST_RELEASE=$(gsutil ls -l gs://${{ vars.TF_STATE_BUCKET }}/releases-elixir/*.tar.gz | grep -v TOTAL | sort -k2 -r | head -n 1 | awk '{print $NF}' | xargs basename)
           echo "release_name=${LATEST_RELEASE}" >> $GITHUB_OUTPUT
 
       - name: Generate SSH key for deployment
@@ -68,7 +60,7 @@ jobs:
         run: |
           ansible-inventory -i .infra/ansible/inventory.gcp.yml --list
         env:
-          GCP_PROJECT_ID: ${{ steps.gcp-project.outputs.project_id }}
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
 
       - name: Run Ansible deployment
@@ -79,7 +71,7 @@ jobs:
             --private-key ~/.ssh/ansible_deploy_key \
             -v
         env:
-          GCP_PROJECT_ID: ${{ steps.gcp-project.outputs.project_id }}
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
           GCS_BUCKET: ${{ vars.TF_STATE_BUCKET }}
           RELEASE_NAME: ${{ steps.release.outputs.release_name }}
