@@ -76,7 +76,7 @@ jobs:
       - name: Install netcat for port check
         run: sudo apt-get update && sudo apt-get install -y netcat
 
-      - name: Preflight: GCP + SSH reachability
+      - name: Preflight GCP SSH reachability
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_ZONE: ${{ vars.GCP_ZONE }}
