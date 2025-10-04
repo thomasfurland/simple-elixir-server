@@ -1,15 +1,9 @@
 plugin: google.cloud.gcp_compute
-projects:
-  - "{{ lookup('env', 'GCP_PROJECT_ID') }}"
+projects: ["stone-arcade-388210"]
 auth_kind: serviceaccount
 service_account_file: "/tmp/gcp-key.json"
-filters:
-  - 'name = "simple-elixir-instance"'
-keyed_groups:
-  - key: labels
-    prefix: label
-hostnames:
-  - name
+filters: ['name = "simple-elixir-instance"']
+hostnames: [name]
 compose:
   ansible_host: networkInterfaces[0].accessConfigs[0].natIP
   ansible_user: ubuntu
