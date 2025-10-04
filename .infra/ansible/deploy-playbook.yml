@@ -1,0 +1,77 @@
+---
+- name: Deploy Elixir Release
+  hosts: all
+  become: yes
+  vars:
+    app_name: simple_elixir_server
+    app_dir: /opt/{{ app_name }}
+    release_bucket: "{{ lookup('env', 'GCS_BUCKET') }}"
+    release_file: "{{ lookup('env', 'RELEASE_NAME') }}"
+  
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - gnupg2
+        state: present
+        update_cache: yes
+
+    - name: Ensure app directory exists
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Stop running application (if exists)
+      shell: |
+        if [ -f {{ app_dir }}/bin/{{ app_name }} ]; then
+          {{ app_dir }}/bin/{{ app_name }} stop || true
+        fi
+      ignore_errors: yes
+
+    - name: Download release from GCS
+      shell: |
+        gsutil cp gs://{{ release_bucket }}/releases-elixir/{{ release_file }} /tmp/{{ release_file }}
+      environment:
+        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: "{{ lookup('env', 'GCP_SERVICE_ACCOUNT_FILE') }}"
+
+    - name: Clean existing release files
+      file:
+        path: "{{ app_dir }}"
+        state: absent
+
+    - name: Recreate app directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Extract release tarball
+      unarchive:
+        src: /tmp/{{ release_file }}
+        dest: "{{ app_dir }}"
+        remote_src: yes
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Set permissions on release binaries
+      file:
+        path: "{{ app_dir }}/bin/{{ app_name }}"
+        mode: '0755'
+
+    - name: Start application as daemon
+      shell: |
+        {{ app_dir }}/bin/{{ app_name }} daemon
+      become_user: ubuntu
+      environment:
+        HOME: /home/ubuntu
+
+    - name: Clean up downloaded tarball
+      file:
+        path: /tmp/{{ release_file }}
+        state: absent
