@@ -99,7 +99,8 @@ jobs:
           ssh -i ~/.ssh/ansible_deploy_key -o StrictHostKeyChecking=no ubuntu@$IP "sudo netstat -tulpn | grep 4000 || echo 'Nothing listening on 4000'"
           
           echo "=== App logs (last 50 lines) ==="
-          ssh -i ~/.ssh/ansible_deploy_key -o StrictHostKeyChecking=no ubuntu@$IP "tail -50 /opt/simple_elixir_server/log/erlang.log.1 2>/dev/null || echo 'No logs found'"
+          ssh -i ~/.ssh/ansible_deploy_key -o StrictHostKeyChecking=no ubuntu@$IP "find /opt/simple_elixir_server -name '*.log' -type f 2>/dev/null || echo 'No log files found'"
+          ssh -i ~/.ssh/ansible_deploy_key -o StrictHostKeyChecking=no ubuntu@$IP "tail -100 /opt/simple_elixir_server/tmp/log/erlang.log.1 2>/dev/null || tail -100 /opt/simple_elixir_server/tmp/log/run_erl.log 2>/dev/null || echo 'No logs found'"
           
           echo "=== Testing HTTP connection ==="
           curl -v http://$IP:4000 || echo "HTTP connection failed"
