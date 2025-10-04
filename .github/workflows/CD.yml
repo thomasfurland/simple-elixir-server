@@ -50,6 +50,23 @@ jobs:
           printf '%s' '${{ secrets.GCP_DEPLOY_SSH_PRIVATE_KEY }}' > ~/.ssh/ansible_deploy_key
           chmod 600 ~/.ssh/ansible_deploy_key
 
+      - name: Verify SSH key matches VM
+        env:
+          GCP_ZONE: ${{ vars.GCP_ZONE }}
+        run: |
+          PRIVATE_KEY_PUB=$(ssh-keygen -y -f ~/.ssh/ansible_deploy_key)
+          VM_SSH_KEYS=$(gcloud compute instances describe simple-elixir-instance \
+            --zone "$GCP_ZONE" \
+            --format='get(metadata.items.ssh-keys)')
+          
+          if echo "$VM_SSH_KEYS" | grep -q "$PRIVATE_KEY_PUB"; then
+            echo "✓ SSH keys match!"
+          else
+            echo "✗ SSH keys DO NOT match"
+            echo "Private key is valid: $(head -n 1 ~/.ssh/ansible_deploy_key)"
+            exit 1
+          fi
+
       - name: Write GCP credentials to file
         run: |
           printf '%s' '${{ secrets.GCP_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
