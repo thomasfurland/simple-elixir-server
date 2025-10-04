@@ -73,7 +73,7 @@ jobs:
             -i /tmp/inventory.gcp.yml \
             .infra/ansible/deploy-playbook.yml \
             --private-key ~/.ssh/ansible_deploy_key \
-            -v
+            -vvv
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
           GCP_SERVICE_ACCOUNT_FILE: /tmp/gcp-key.json
