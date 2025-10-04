@@ -36,6 +36,7 @@
       shell: |
         gsutil cp gs://{{ release_bucket }}/releases-elixir/{{ release_file }} /tmp/{{ release_file }}
       delegate_to: localhost
+      become: no
       run_once: true
 
     - name: Copy release to remote server
