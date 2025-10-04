@@ -2,7 +2,6 @@ name: Continuous Deployment
 
 on:
   workflow_dispatch:
-  pull_request:
 
 permissions:
   contents: read
@@ -82,28 +81,6 @@ jobs:
           ANSIBLE_HOST_KEY_CHECKING: 'False'
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           DATABASE_URL: ${{ secrets.SIMPLE_ELIXIR_DB_URL }}
-
-      - name: Debug app status
-        env:
-          GCP_ZONE: ${{ vars.GCP_ZONE }}
-        run: |
-          IP=$(gcloud compute instances describe simple-elixir-instance \
-            --zone "$GCP_ZONE" \
-            --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
-          
-          echo "=== VM IP: $IP ==="
-          echo "=== Checking if app is running ==="
-          ssh -i ~/.ssh/ansible_deploy_key -o StrictHostKeyChecking=no ubuntu@$IP "ps aux | grep simple_elixir_server | grep -v grep || echo 'App not running'"
-          
-          echo "=== Checking port 4000 ==="
-          ssh -i ~/.ssh/ansible_deploy_key -o StrictHostKeyChecking=no ubuntu@$IP "sudo netstat -tulpn | grep 4000 || echo 'Nothing listening on 4000'"
-          
-          echo "=== App logs (last 50 lines) ==="
-          ssh -i ~/.ssh/ansible_deploy_key -o StrictHostKeyChecking=no ubuntu@$IP "find /opt/simple_elixir_server -name '*.log' -type f 2>/dev/null || echo 'No log files found'"
-          ssh -i ~/.ssh/ansible_deploy_key -o StrictHostKeyChecking=no ubuntu@$IP "tail -100 /opt/simple_elixir_server/tmp/log/erlang.log.1 2>/dev/null || tail -100 /opt/simple_elixir_server/tmp/log/run_erl.log 2>/dev/null || echo 'No logs found'"
-          
-          echo "=== Testing HTTP connection ==="
-          curl -v http://$IP:4000 || echo "HTTP connection failed"
 
       - name: Clean up credentials
         if: always()
