@@ -44,12 +44,28 @@ resource "google_compute_firewall" "allow_ssh_ci" {
   target_tags = ["allow-ssh"]
 }
 
+# firewall: allow HTTP traffic to Phoenix app
+resource "google_compute_firewall" "allow_http" {
+  name    = "allow-http-phoenix"
+  network = google_compute_network.vpc_network.name
+
+  direction   = "INGRESS"
+  priority    = 1000
+  source_ranges = ["0.0.0.0/0"]
+  allow {
+    protocol = "tcp"
+    ports    = ["4000"]
+  }
+
+  target_tags = ["allow-http"]
+}
+
 resource "google_compute_instance" "default" {
   name         = "simple-elixir-instance"
   machine_type = "e2-micro"
   zone         = var.zone
 
-  tags = ["allow-ssh"]
+  tags = ["allow-ssh", "allow-http"]
 
   metadata = {
     enable-oslogin = "FALSE"
@@ -93,4 +109,9 @@ resource "google_sql_user" "app" {
   name     = "appuser"
   instance = google_sql_database_instance.postgres.name
   password = var.db_password
+}
+
+output "instance_ip" {
+  description = "Public IP address of the instance"
+  value       = google_compute_address.static.address
 }
