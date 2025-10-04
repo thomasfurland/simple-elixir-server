@@ -1,40 +1,42 @@
 ## Context
 - Ultimate Goal: deploy Phoenix app to GCP (single VM, Cloud SQL).
-- Tools: Terraform (infra), GitHub Actions (CI/CD), eventually ansible.
-- Two agents: **infra** + **ci**.
-- Each agent will be given a git worktree to do work in on their own git branches. work will be considered complete when the output files and only the output files have code representitive of the tasks given to them.
-- never push the changes up to remote origin, stop after commiting changes with a helpful message
+- Tools: Terraform (infra), GitHub Actions (CI/CD), Ansible.
+- Each agent will be given a git worktree to do work in on their own git branches. Agents must keep their work exclusively within their starting directories.
+- Work will be considered complete when the output files and only the output and target files have code representitive of the tasks given to them.
+- commit changes with a descriptive and short message and push changes up to remote origin
 - If you are unsure ask questions before writing code.
----
 
-## Agent: Infra
-**Scope**
-- Terraform GCP setup.
-
-**Tasks**
-- VM (Ubuntu, static IP)
-- Cloud SQL Postgres
-    - database
-    - user
-- Artifact Registry
-- Secret Manager
-
-**Expected Outputs**
-- `.infra/terraform/main.tf`
-- `.infra/terraform/variables.tf`
+Below are separate objectives for each agent to work on. Agents will only work on their given tasks.
 
 ---
 
-## Agent: CI
+## Agent: amp-one
 **Scope**
-- GitHub Actions on pull request run testing suite.
+- Github Action Workflow setup for Ansible files and CD.yml
 
 **Tasks**
-- run migrations
-- run linter
-- run credo
-- run test
+- Create Ansible Dynamic Inventory pull of VMs from GCP in ./infra/ansible folder
+- Create Ansible Playbook to run deployments for elixir release tarball in gcs in .infra/ansible folder
+- Create CD.yml workflow that runs ansible dynamic inventory pull and playbook run in .github/workflows/CD.yml
+- refer to .github/workflows/build.yml for information on secret usage and release tarball information
 
 **Expected Outputs**
-- `.github/workflows/CI.yml`
+- `amp-one/.infra/ansible/inventory.yml`
+- `amp-one/.infra/ansible/deploy-playbook.yml`
+- `amp-one/.github/workflows/CD.yml`
+
+---
+
+## Agent: amp-two
+**Scope**
+- Github Action Workflow Improvement for CI.yml to get Credo and formatter checks working exclusively on app code and not external library code. this is because it will fail otherwise.
+
+**Tasks**
+- create credo config
+- create formatter config
+- add back credo and formatter checks to CI.yml
+
+**Expected Outputs**
+- `amp-two/.github/workflows/CI.yml`
+- potentially new credo and formatter config files within the amp-two directory
 
