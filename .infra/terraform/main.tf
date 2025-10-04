@@ -31,7 +31,7 @@ resource "google_compute_address" "static" {
 # firewall: allow SSH to instances with tag "allow-ssh"
 resource "google_compute_firewall" "allow_ssh_ci" {
   name    = "allow-ssh-ci"
-  network = "default"
+  network = google_compute_network.vpc_network.name
 
   direction   = "INGRESS"
   priority    = 1000
