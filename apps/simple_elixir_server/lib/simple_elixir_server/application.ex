@@ -9,7 +9,8 @@ defmodule SimpleElixirServer.Application do
   def start(_type, _args) do
     children = [
       SimpleElixirServer.Repo,
-      {DNSCluster, query: Application.get_env(:simple_elixir_server, :dns_cluster_query) || :ignore},
+      {DNSCluster,
+       query: Application.get_env(:simple_elixir_server, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: SimpleElixirServer.PubSub}
       # Start a worker by calling: SimpleElixirServer.Worker.start_link(arg)
       # {SimpleElixirServer.Worker, arg}
