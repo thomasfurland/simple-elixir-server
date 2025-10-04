@@ -1,8 +1,8 @@
 plugin: google.cloud.gcp_compute
 projects:
-  - "{{ lookup('env', 'GCP_PROJECT_ID') }}"
+  - "{{ lookup('ansible.builtin.env','GCP_PROJECT_ID') | mandatory }}"
 auth_kind: serviceaccount
-service_account_file: "{{ lookup('env', 'GCP_SERVICE_ACCOUNT_FILE') }}"
+service_account_file: "{{ lookup('ansible.builtin.env','GCP_SERVICE_ACCOUNT_FILE') | mandatory }}"
 filters:
   - name = simple-elixir-instance
 keyed_groups:

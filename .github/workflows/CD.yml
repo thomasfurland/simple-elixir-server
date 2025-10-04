@@ -65,17 +65,6 @@ jobs:
           ansible --version
           ansible-galaxy collection list | grep google.cloud
 
-
-      - name: Debug env and inventory render
-        run: |
-          set -x
-          env | sort
-          python - <<'PY'
-      from jinja2 import Template; import os, sys, yaml
-      t=open(".infra/ansible/inventory.gcp.yml").read()
-      print(Template(t).render(env=os.environ))
-      PY
-
       - name: Test inventory
         run: |
           ansible-inventory -i .infra/ansible/inventory.gcp.yml --list -vvv
