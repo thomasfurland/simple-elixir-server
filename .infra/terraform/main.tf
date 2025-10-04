@@ -53,6 +53,7 @@ resource "google_compute_instance" "default" {
 
   metadata = {
     enable-oslogin = "FALSE"
+    ssh-keys = "ubuntu:${var.deploy_ssh_public_key}"
   }
 
   boot_disk {

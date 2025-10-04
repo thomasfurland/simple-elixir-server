@@ -44,16 +44,11 @@ jobs:
           LATEST_RELEASE=$(gsutil ls -l gs://${{ vars.TF_STATE_BUCKET }}/releases-elixir/*.tar.gz | grep -v TOTAL | sort -k2 -r | head -n 1 | awk '{print $NF}' | xargs basename)
           echo "release_name=${LATEST_RELEASE}" >> $GITHUB_OUTPUT
 
-      - name: Generate SSH key for deployment
+      - name: Write SSH key from secret
         run: |
-          ssh-keygen -t rsa -b 4096 -f ~/.ssh/ansible_deploy_key -N ""
+          mkdir -p ~/.ssh
+          printf '%s' '${{ secrets.GCP_DEPLOY_SSH_KEY }}' > ~/.ssh/ansible_deploy_key
           chmod 600 ~/.ssh/ansible_deploy_key
-
-      - name: Add SSH key to GCP instance
-        run: |
-          gcloud compute instances add-metadata simple-elixir-instance \
-            --zone=${{ vars.GCP_ZONE }} \
-            --metadata=ssh-keys="ubuntu:$(cat ~/.ssh/ansible_deploy_key.pub)"
 
       - name: Write GCP credentials to file
         run: |
@@ -71,35 +66,6 @@ jobs:
         run: |
           sed "s|__PROJECT_ID__|$GCP_PROJECT_ID|g" \
             .infra/ansible/inventory.gcp.yml > /tmp/inventory.gcp.yml
-
-      # (optional) ensure nc is present
-      - name: "Install netcat for port check"
-        run: sudo apt-get update && sudo apt-get install -y netcat-openbsd
-
-      - name: Preflight GCP SSH reachability
-        env:
-          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-          GCP_ZONE: ${{ vars.GCP_ZONE }}
-        run: |
-          set -euo pipefail
-          gcloud config set project "$GCP_PROJECT_ID"
-
-          echo "Describe instance:"
-          gcloud compute instances describe simple-elixir-instance \
-            --zone "$GCP_ZONE" \
-            --format='value(status,networkInterfaces[0].accessConfigs[0].natIP,tags.items)'
-
-          echo "Firewall rules allowing tcp:22:"
-          gcloud compute firewall-rules list \
-            --filter='direction=INGRESS AND allowed.tcp:22'
-
-          IP=$(gcloud compute instances describe simple-elixir-instance \
-            --zone "$GCP_ZONE" \
-            --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
-          echo "IP=$IP"
-
-          echo "Port 22 reachable?"
-          nc -vz "$IP" 22 || true
 
       - name: Run Ansible deployment
         run: |

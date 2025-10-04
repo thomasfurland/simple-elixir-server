@@ -18,3 +18,9 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "deploy_ssh_public_key" {
+  description = "SSH public key for deployment access"
+  type        = string
+  sensitive   = true
+}
