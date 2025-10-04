@@ -37,11 +37,7 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
-
-      - name: Write GCP credentials to file
-        run: |
-          echo '${{ secrets.GCP_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
-
+      
       - name: Get latest release name
         id: release
         run: |
@@ -58,6 +54,11 @@ jobs:
           gcloud compute instances add-metadata simple-elixir-instance \
             --zone=${{ vars.GCP_ZONE }} \
             --metadata=ssh-keys="ubuntu:$(cat ~/.ssh/ansible_deploy_key.pub)"
+
+      - name: Write GCP credentials to file
+        run: |
+          printf '%s' '${{ secrets.GCP_CREDENTIALS_JSON }}' > /tmp/gcp-key.json
+          chmod 600 /tmp/gcp-key.json
 
       - name: Verify Ansible setup
         run: |
