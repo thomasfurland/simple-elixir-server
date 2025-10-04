@@ -19,7 +19,17 @@
         DATABASE_URL: "{{ lookup('env', 'DATABASE_URL') }}"
       when: migration_action == 'migrate'
 
-    - name: Run rollback
+    - name: Run rollback (one step)
+      shell: |
+        {{ app_dir }}/bin/{{ app_name }} eval "SimpleElixirServer.Release.rollback_one(SimpleElixirServer.Repo)"
+      become_user: ubuntu
+      environment:
+        HOME: /home/ubuntu
+        SECRET_KEY_BASE: "{{ lookup('env', 'SECRET_KEY_BASE') }}"
+        DATABASE_URL: "{{ lookup('env', 'DATABASE_URL') }}"
+      when: migration_action == 'rollback' and rollback_version == ''
+
+    - name: Run rollback (to specific version)
       shell: |
         {{ app_dir }}/bin/{{ app_name }} eval "SimpleElixirServer.Release.rollback(SimpleElixirServer.Repo, {{ rollback_version }})"
       become_user: ubuntu

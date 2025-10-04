@@ -12,9 +12,10 @@ on:
           - rollback
         default: 'migrate'
       rollback_version:
-        description: 'Rollback version (required for rollback)'
+        description: 'Rollback version (optional - defaults to one step back)'
         required: false
         type: string
+        default: ''
 
 permissions:
   contents: read
@@ -24,6 +25,11 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     environment: prod
+    env:
+      # Set defaults for PR runs (when inputs aren't available)
+      MIGRATION_ACTION: ${{ inputs.action || 'migrate' }}
+      ROLLBACK_VERSION: ${{ inputs.rollback_version || '' }}
+
     
     steps:
       - uses: actions/checkout@v4
@@ -67,14 +73,6 @@ jobs:
         run: |
           sed "s|__PROJECT_ID__|$GCP_PROJECT_ID|g" \
             .infra/ansible/inventory.gcp.yml > /tmp/inventory.gcp.yml
-
-      - name: Validate inputs for rollback
-        if: inputs.action == 'rollback'
-        run: |
-          if [ -z "${{ inputs.rollback_version }}" ]; then
-            echo "Error: rollback_version is required when action is rollback"
-            exit 1
-          fi
 
       - name: Run database migration
         run: |
