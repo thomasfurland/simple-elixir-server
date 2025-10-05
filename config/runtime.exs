@@ -52,6 +52,9 @@ if config_env() == :prod do
     secret_key_base: secret_key_base,
     server: true
 
+  config :simple_elixir_server,
+    mail_sender: System.get_env("BREVO_SENDER_ADDRESS")
+
   # ## Using releases
   #
   # If you are doing OTP releases, you need to instruct Phoenix

@@ -22,9 +22,6 @@ config :simple_elixir_server, :scopes,
     test_setup_helper: :register_and_log_in_user
   ]
 
-config :simple_elixir_server,
-  mail_sender: System.get_env("BREVO_SENDER_ADDRESS") || "contact@example.com"
-
 # Configure Mix tasks and generators
 config :simple_elixir_server,
   ecto_repos: [SimpleElixirServer.Repo]
