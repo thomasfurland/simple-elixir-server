@@ -91,6 +91,7 @@ jobs:
           ANSIBLE_HOST_KEY_CHECKING: 'False'
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           DATABASE_URL: ${{ secrets.SIMPLE_ELIXIR_DB_URL }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
 
       - name: Clean up credentials
         if: always()
