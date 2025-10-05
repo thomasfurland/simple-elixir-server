@@ -15,7 +15,8 @@ defmodule SimpleElixirServerWeb.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      generators: [context_app: :simple_elixir_server]
     ]
   end
 
