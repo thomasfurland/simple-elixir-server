@@ -92,6 +92,7 @@ jobs:
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           DATABASE_URL: ${{ secrets.SIMPLE_ELIXIR_DB_URL }}
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_SENDER_ADDRESS: ${{ vars.BREVO_SENDER_ADDRESS }}
 
       - name: Clean up credentials
         if: always()
