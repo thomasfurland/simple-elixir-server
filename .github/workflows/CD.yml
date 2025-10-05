@@ -71,7 +71,7 @@ jobs:
         run: |
           EXTERNAL_IP=$(gcloud compute instances describe simple-elixir-instance \
             --project=${{ vars.GCP_PROJECT_ID }} \
-            --zone=us-central1-a \
+            --zone=${{ vars.GCP_ZONE }} \
             --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
           echo "external_ip=${EXTERNAL_IP}" >> $GITHUB_OUTPUT
 
