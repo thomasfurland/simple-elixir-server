@@ -36,7 +36,13 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
+  host = System.get_env("PHX_HOST") || "example.com"
+
   config :simple_elixir_server_web, SimpleElixirServerWeb.Endpoint,
+    url: [
+      host: host,
+      port: String.to_integer(System.get_env("PORT") || "4000")
+    ],
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
@@ -45,6 +51,9 @@ if config_env() == :prod do
     ],
     secret_key_base: secret_key_base,
     server: true
+
+  config :simple_elixir_server,
+    mail_sender: System.get_env("BREVO_SENDER_ADDRESS")
 
   # ## Using releases
   #
@@ -93,10 +102,10 @@ if config_env() == :prod do
   # In production you need to configure the mailer to use a different adapter.
   # Here is an example configuration for Mailgun:
   #
-  #     config :simple_elixir_server, SimpleElixirServer.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
+  config :simple_elixir_server, SimpleElixirServer.Mailer,
+    adapter: Swoosh.Adapters.Brevo,
+    api_key: System.get_env("BREVO_API_KEY")
+
   #
   # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
   # and Finch out-of-the-box. This configuration is typically done at

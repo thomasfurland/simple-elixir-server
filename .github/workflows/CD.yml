@@ -66,12 +66,22 @@ jobs:
           sed "s|__PROJECT_ID__|$GCP_PROJECT_ID|g" \
             .infra/ansible/inventory.gcp.yml > /tmp/inventory.gcp.yml
 
+      - name: Get VM external IP
+        id: vm_ip
+        run: |
+          EXTERNAL_IP=$(gcloud compute instances describe simple-elixir-instance \
+            --project=${{ vars.GCP_PROJECT_ID }} \
+            --zone=${{ vars.GCP_ZONE }} \
+            --format='get(networkInterfaces[0].accessConfigs[0].natIP)')
+          echo "external_ip=${EXTERNAL_IP}" >> $GITHUB_OUTPUT
+
       - name: Run Ansible deployment
         run: |
           cd .infra/ansible
           ansible-playbook \
             -i /tmp/inventory.gcp.yml \
             deploy-playbook.yml \
+            --extra-vars "phx_host=${{ steps.vm_ip.outputs.external_ip }}" \
             -vvv
         env:
           GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
@@ -81,6 +91,8 @@ jobs:
           ANSIBLE_HOST_KEY_CHECKING: 'False'
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           DATABASE_URL: ${{ secrets.SIMPLE_ELIXIR_DB_URL }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_SENDER_ADDRESS: ${{ vars.BREVO_SENDER_ADDRESS }}
 
       - name: Clean up credentials
         if: always()

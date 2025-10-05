@@ -1,7 +1,7 @@
 defmodule SimpleElixirServer.Accounts.UserNotifier do
   import Swoosh.Email
 
-  alias SimpleElixirServer.Mailer
+  alias SimpleElixirServer.{Config, Mailer}
   alias SimpleElixirServer.Accounts.User
 
   # Delivers the email using the application mailer.
@@ -9,7 +9,7 @@ defmodule SimpleElixirServer.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"SimpleElixirServer", "contact@example.com"})
+      |> from({"SimpleElixirServer", Config.mail_sender()})
       |> subject(subject)
       |> text_body(body)
 
