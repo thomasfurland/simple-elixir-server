@@ -37,7 +37,7 @@ if config_env() == :prod do
       """
 
   host = System.get_env("PHX_HOST") || "example.com"
-  
+
   config :simple_elixir_server_web, SimpleElixirServerWeb.Endpoint,
     url: [host: host, port: 443],
     http: [
