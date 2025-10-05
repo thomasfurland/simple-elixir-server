@@ -9,6 +9,19 @@
 # move said applications out of the umbrella.
 import Config
 
+config :simple_elixir_server, :scopes,
+  user: [
+    default: true,
+    module: SimpleElixirServer.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: SimpleElixirServer.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 # Configure Mix tasks and generators
 config :simple_elixir_server,
   ecto_repos: [SimpleElixirServer.Repo]
