@@ -27,7 +27,9 @@ defmodule SimpleElixirServerWeb.UserLive.LoginTest do
 
       assert html =~ "If your email is in our system"
 
-      assert SimpleElixirServer.Repo.get_by!(SimpleElixirServer.Accounts.UserToken, user_id: user.id).context ==
+      assert SimpleElixirServer.Repo.get_by!(SimpleElixirServer.Accounts.UserToken,
+               user_id: user.id
+             ).context ==
                "login"
     end
 
