@@ -16,6 +16,8 @@ defmodule SimpleElixirServerWeb.ConnCase do
   """
 
   use ExUnit.CaseTemplate
+  alias SimpleElixirServer.{Accounts, DataCase}
+  alias SimpleElixirServer.AccountsFixtures, as: Fixtures
 
   using do
     quote do
@@ -32,7 +34,7 @@ defmodule SimpleElixirServerWeb.ConnCase do
   end
 
   setup tags do
-    SimpleElixirServer.DataCase.setup_sandbox(tags)
+    DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
@@ -45,8 +47,8 @@ defmodule SimpleElixirServerWeb.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn} = context) do
-    user = SimpleElixirServer.AccountsFixtures.user_fixture()
-    scope = SimpleElixirServer.Accounts.Scope.for_user(user)
+    user = Fixtures.user_fixture()
+    scope = Accounts.Scope.for_user(user)
 
     opts =
       context
@@ -62,7 +64,7 @@ defmodule SimpleElixirServerWeb.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user, opts \\ []) do
-    token = SimpleElixirServer.Accounts.generate_user_session_token(user)
+    token = Accounts.generate_user_session_token(user)
 
     maybe_set_token_authenticated_at(token, opts[:token_authenticated_at])
 
@@ -74,6 +76,6 @@ defmodule SimpleElixirServerWeb.ConnCase do
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do
-    SimpleElixirServer.AccountsFixtures.override_token_authenticated_at(token, authenticated_at)
+    Fixtures.override_token_authenticated_at(token, authenticated_at)
   end
 end
