@@ -62,7 +62,7 @@ defmodule SimpleElixirServerWeb.RunsControllerTest do
     end
 
     test "handles runs without title", %{conn: conn, user: user} do
-      run = run_fixture(%{user_id: user.id, title: nil})
+      _run = run_fixture(%{user_id: user.id, title: nil})
 
       conn = get(conn, ~p"/runs")
       response = html_response(conn, 200)
@@ -70,7 +70,7 @@ defmodule SimpleElixirServerWeb.RunsControllerTest do
       assert response =~ "Untitled Run"
     end
 
-    test "requires authentication", %{conn: conn} do
+    test "requires authentication", %{conn: _conn} do
       conn = build_conn()
       conn = get(conn, ~p"/runs")
       assert redirected_to(conn) == ~p"/users/log-in"
@@ -117,7 +117,7 @@ defmodule SimpleElixirServerWeb.RunsControllerTest do
       assert response =~ "Back to Runs"
     end
 
-    test "requires authentication", %{conn: conn, user: user} do
+    test "requires authentication", %{conn: _conn, user: user} do
       run = run_fixture(%{user_id: user.id})
       conn = build_conn()
       conn = get(conn, ~p"/runs/#{run.id}")
