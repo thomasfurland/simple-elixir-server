@@ -14,19 +14,16 @@ Below are separate objectives for each agent to work on. Agents will only work o
 
 ## Agent: amp-one
 **Scope**
-- We want a generic implementation for a runs webpage that lists all runs for the user whos logged in, we want to be able to go to a run page when they click on a run as well. So plan for that. We also want a modal that we'll use to create new jobs. Just stub this and the run page. but flesh out the runs page.
+- we want the run modal to be a form that lets us create a run that we write to postgres with ecto. we should expect a title, user_id added behind the scenes from scope and outcomes should be generated for ease of input since when we implement the worker itll do that ourselves. also include a dropdown for job runner field that we will use later, it won't be part of the changeset either. Currently the modal doesn't work on click either so figure out why as well.
 
 **Tasks**
-- Create new runs page that displays all runs from a user. find user info from scope in header i believe
-- create stub run page that can be clicked to from the list of displayed runs on runs page
-- create stub modal for creating new run
-- add useful tests for runs page only make sure to use both account and runs fixtures when writing tests
-- update router to point to runs page and run page
+- edit stub modal for creating new run so we actually can create new run. form for title (nullable), outcome generated on click, stored with our existing functions
+- add useful tests for modal, within runs_controller_test.ex i assume
 
 **Expected Outputs**
 - `amp-one/apps/simple_elixir_server_web/lib/simple_elixir_server_web/controllers/run_html/runs.html.heex`
 - `amp-one/apps/simple_elixir_server_web/lib/simple_elixir_server_web/controllers/runs_controller.ex`
-- `amp-one/apps/simple_elixir_server_web/lib/simple_elixir_server_web/router.ex`
+- `amp-one/apps/simple_elixir_server_web/lib/simple_elixir_server_web/components/run_modal.ex`
 - `amp-one/apps/simple_elixir_server_web/test/simple_elixir_server_web/controllers/runs__controller_test.exs`
 - any other files we may need
 
@@ -34,8 +31,13 @@ Below are separate objectives for each agent to work on. Agents will only work o
 
 ## Agent: amp-two
 **Scope**
-
+- create worker lookup module with two functions. 1 takes list of queues from config simple_job_processor, Oban, :queues field and outputs it. 2 takes in a queue name and can regenerate the original module name. We can expect it'll always be in the format SimpleJobProcessor.Workers.QueueName, ensure module exists before we return otherwise we leave a helpful message explaining the correct pattern or ensure its an oban module. This lets us create runners on the fly much quicker since we only need to define the oban module and make sure its registered in the queue. the rest is automated. 
 **Tasks**
+- create simple oban config in umbrella mix.exs, add 2 queues and create 2 simple oban.worker so we have some examples.
+- create worker lookup module that contains the two functions mentioned above.
+- write meaningful tests for worker lookup module
 
 **Expected Outputs**
-
+- `amp-two/apps/simple_job_processor/lib/simple_job_processor/worker_lookup.ex` or a better name
+- `amp-two/apps/simple_job_processor/lib/simple_job_processor/workers/xxx.ex`
+- `amp-two/apps/simple_job_processor/test/simple_job_processor/worker_lookup_test.exs` same name as the module
