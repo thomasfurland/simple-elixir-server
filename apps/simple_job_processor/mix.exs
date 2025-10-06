@@ -27,6 +27,7 @@ defmodule SimpleJobProcessor.MixProject do
   defp deps do
     [
       {:oban, "~> 2.20"},
+      {:csv, "~> 3.2"},
       {:simple_elixir_server, in_umbrella: true}
     ]
   end
