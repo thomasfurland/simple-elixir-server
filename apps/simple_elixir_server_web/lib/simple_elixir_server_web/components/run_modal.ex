@@ -90,8 +90,8 @@ defmodule SimpleElixirServerWeb.RunModal do
   end
 
   @impl true
-  def handle_event("validate", _params, socket) do
-    {:noreply, socket}
+  def handle_event("validate", params, socket) do
+    {:noreply, assign(socket, :form, to_form(params))}
   end
 
   @impl true
