@@ -60,7 +60,7 @@ defmodule SimpleElixirServerWeb.RunModal do
   def handle_event("save", params, socket) do
     user_id = socket.assigns.current_scope.user.id
     title = params["title"]
-    
+
     outcomes = %{
       "generated_at" => DateTime.utc_now() |> DateTime.to_iso8601(),
       "status" => "pending"

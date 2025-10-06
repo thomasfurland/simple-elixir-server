@@ -10,7 +10,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
 
     test "renders runs page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/runs")
-      
+
       assert html =~ "Runs"
       assert html =~ "New Run"
     end
@@ -46,7 +46,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
     test "requires authentication", %{conn: _conn} do
       conn = build_conn()
       result = live(conn, ~p"/runs")
-      
+
       assert {:error, {:redirect, %{to: "/users/log-in"}}} = result
     end
   end
@@ -56,34 +56,34 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
 
     test "opens create modal on button click", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/runs")
-      
+
       refute has_element?(lv, "#run-modal")
-      
+
       lv |> element("button", "New Run") |> render_click()
-      
+
       assert has_element?(lv, "#run-modal")
       assert has_element?(lv, "h3", "Create New Run")
     end
 
     test "closes modal on cancel", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/runs")
-      
+
       lv |> element("button", "New Run") |> render_click()
       assert has_element?(lv, "#run-modal")
-      
+
       lv |> element("button", "Cancel") |> render_click()
       refute has_element?(lv, "#run-modal")
     end
 
     test "creates run with title", %{conn: conn, user: user} do
       {:ok, lv, _html} = live(conn, ~p"/runs")
-      
+
       lv |> element("button", "New Run") |> render_click()
-      
+
       lv
       |> form("#run-form", %{title: "New Test Run"})
       |> render_submit()
-      
+
       html = render(lv)
       assert html =~ "New Test Run"
       assert html =~ "Run created successfully"
@@ -92,13 +92,13 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
 
     test "creates run without title", %{conn: conn, user: user} do
       {:ok, lv, _html} = live(conn, ~p"/runs")
-      
+
       lv |> element("button", "New Run") |> render_click()
-      
+
       lv
       |> form("#run-form", %{title: ""})
       |> render_submit()
-      
+
       html = render(lv)
       assert html =~ "Untitled Run"
       assert html =~ "Run created successfully"
@@ -106,25 +106,25 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
 
     test "creates run with generated outcomes", %{conn: conn, user: user} do
       {:ok, lv, _html} = live(conn, ~p"/runs")
-      
+
       lv |> element("button", "New Run") |> render_click()
-      
+
       lv
       |> form("#run-form", %{title: "Test Run"})
       |> render_submit()
-      
+
       {:ok, runs} = SimpleElixirServer.Runs.find_all(%{user_id: user.id})
       run = Enum.find(runs, &(&1.title == "Test Run"))
-      
+
       assert run.outcomes["status"] == "pending"
       assert run.outcomes["generated_at"]
     end
 
     test "modal shows job runner dropdown", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/runs")
-      
+
       lv |> element("button", "New Run") |> render_click()
-      
+
       assert has_element?(lv, "select[name='job_runner']")
       assert has_element?(lv, "option", "Runner One")
       assert has_element?(lv, "option", "Runner Two")

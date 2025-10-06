@@ -63,14 +63,14 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
               <tbody>
                 <%= for run <- @runs do %>
                   <tr class="hover">
-                    <td class="font-mono text-sm"><%= run.id %></td>
-                    <td class="font-medium"><%= run.title || "Untitled Run" %></td>
+                    <td class="font-mono text-sm">{run.id}</td>
+                    <td class="font-medium">{run.title || "Untitled Run"}</td>
                     <td class="text-sm text-base-content/70">
-                      <%= Calendar.strftime(run.inserted_at, "%b %d, %Y at %I:%M %p") %>
+                      {Calendar.strftime(run.inserted_at, "%b %d, %Y at %I:%M %p")}
                     </td>
                     <td class="text-sm">
                       <%= if run.outcomes do %>
-                        <span class="badge badge-sm"><%= map_size(run.outcomes) %> results</span>
+                        <span class="badge badge-sm">{map_size(run.outcomes)} results</span>
                       <% else %>
                         <span class="text-base-content/50">No outcomes</span>
                       <% end %>
