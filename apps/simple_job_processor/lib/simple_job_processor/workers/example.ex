@@ -13,10 +13,10 @@ defmodule SimpleJobProcessor.Workers.Example do
 
   @impl SimpleJobProcessor.Workers
   def analyze(row, accumulated) do
-    open = parse_float(row["open"])
-    close = parse_float(row["close"])
-    high = parse_float(row["high"])
-    low = parse_float(row["low"])
+    open = row["open"]
+    close = row["close"]
+    high = row["high"]
+    low = row["low"]
 
     count = Map.get(accumulated, "count", 0) + 1
     total_close = Map.get(accumulated, "total_close", 0.0) + close
@@ -41,15 +41,4 @@ defmodule SimpleJobProcessor.Workers.Example do
       "bearish_count" => bearish_count
     }
   end
-
-  defp parse_float(value) when is_binary(value) do
-    case Float.parse(value) do
-      {float, _} -> float
-      :error -> 0.0
-    end
-  end
-
-  defp parse_float(value) when is_float(value), do: value
-  defp parse_float(value) when is_integer(value), do: value * 1.0
-  defp parse_float(_), do: 0.0
 end

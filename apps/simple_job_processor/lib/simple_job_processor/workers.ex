@@ -64,11 +64,13 @@ defmodule SimpleJobProcessor.Workers do
 
       defp process_csv(csv_stream) do
         csv_stream
+        |> ensure_headers()
         |> CSV.decode(headers: true)
         |> Enum.reduce_while({:ok, %{}}, fn
           {:ok, row}, {:ok, accumulated} ->
             try do
-              updated = analyze(row, accumulated)
+              normalized_row = normalize_row(row)
+              updated = analyze(normalized_row, accumulated)
               rows_count = Map.get(updated, "rows_processed", 0) + 1
               {:cont, {:ok, Map.put(updated, "rows_processed", rows_count)}}
             rescue
@@ -86,6 +88,61 @@ defmodule SimpleJobProcessor.Workers do
         e ->
           {:error, "Unexpected error: #{Exception.message(e)}"}
       end
+
+      defp ensure_headers(csv_stream) do
+        Stream.transform(csv_stream, :first_row, fn
+          line, :first_row ->
+            trimmed = String.trim(line)
+
+            if has_header?(trimmed) do
+              {[line], :pass_through}
+            else
+              header = generate_header(trimmed)
+              {[header, line], :pass_through}
+            end
+
+          line, :pass_through ->
+            {[line], :pass_through}
+        end)
+      end
+
+      defp has_header?(line) do
+        fields = String.split(line, ",") |> Enum.map(&String.trim/1)
+
+        Enum.any?(fields, fn field ->
+          case Float.parse(field) do
+            {_float, ""} -> false
+            :error -> true
+            _ -> false
+          end
+        end)
+      end
+
+      defp generate_header(line) do
+        field_count = line |> String.split(",") |> length()
+
+        case field_count do
+          4 -> "open,high,low,close"
+          5 -> "open,high,low,close,volume"
+          6 -> "timestamp,open,high,low,close,volume"
+          _ -> "open,high,low,close"
+        end
+      end
+
+      defp normalize_row(row) do
+        Map.new(row, fn {key, value} -> {key, parse_float(value)} end)
+      end
+
+      defp parse_float(value) when is_binary(value) do
+        case Float.parse(value) do
+          {float, _} -> float
+          :error -> value
+        end
+      end
+
+      defp parse_float(value) when is_float(value), do: value
+      defp parse_float(value) when is_integer(value), do: value * 1.0
+      defp parse_float(value), do: value
 
       defp mark_failed(run_id, message) do
         case SimpleElixirServer.Runs.find(run_id) do
