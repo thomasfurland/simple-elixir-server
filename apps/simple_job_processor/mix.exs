@@ -26,7 +26,8 @@ defmodule SimpleJobProcessor.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:oban, "~> 2.20"}
+      {:oban, "~> 2.20"},
+      {:simple_elixir_server, in_umbrella: true}
     ]
   end
 end
