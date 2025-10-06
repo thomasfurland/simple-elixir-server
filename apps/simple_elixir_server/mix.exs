@@ -44,7 +44,8 @@ defmodule SimpleElixirServer.MixProject do
       {:jason, "~> 1.2"},
       {:swoosh, "~> 1.16"},
       {:req, "~> 0.5"},
-      {:oban, "~> 2.20"}
+      {:oban, "~> 2.20"},
+      {:csv, "~> 3.2"}
     ]
   end
 

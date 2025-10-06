@@ -64,20 +64,16 @@ defmodule SimpleJobProcessor.Workers do
 
       defp process_csv(csv_stream) do
         csv_stream
-        |> CSV.decode(headers: true)
         |> Enum.reduce_while({:ok, %{}, 0}, fn
-          {:ok, row}, {:ok, accumulated, row_count} ->
+          row_map, {:ok, accumulated, row_count} ->
             try do
-              normalized_row = normalize_row(row)
+              normalized_row = normalize_row(row_map)
               updated = analyze(normalized_row, accumulated)
               {:cont, {:ok, updated, row_count + 1}}
             rescue
               e ->
                 {:halt, {:error, "Error in analyze/2 callback: #{Exception.message(e)}"}}
             end
-
-          {:error, reason}, _acc ->
-            {:halt, {:error, "CSV parsing error: #{inspect(reason)}"}}
         end)
         |> case do
           {:ok, results, row_count} -> {:ok, Map.put(results, "rows_processed", row_count)}
@@ -97,7 +93,7 @@ defmodule SimpleJobProcessor.Workers do
 
       defp parse_float(value) when is_binary(value) do
         trimmed = String.trim(value)
-        
+
         case Float.parse(trimmed) do
           {float, ""} -> float
           :error -> trimmed

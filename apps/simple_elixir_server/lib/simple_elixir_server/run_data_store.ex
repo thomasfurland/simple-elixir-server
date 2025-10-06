@@ -104,7 +104,10 @@ defmodule SimpleElixirServer.RunDataStore do
   end
 
   @doc """
-  Returns a stream for the CSV data of a given run with headers guaranteed.
+  Returns a stream of candlestick data maps for a given run.
+
+  Automatically detects and skips header rows, and converts CSV rows to maps
+  with keys based on column count (4=OHLC, 5=OHLCV, 6=timestamp+OHLCV).
 
   ## Parameters
     - run_id: The ID of the run
@@ -113,7 +116,7 @@ defmodule SimpleElixirServer.RunDataStore do
 
       iex> {:ok, stream} = stream(123)
       iex> Enum.take(stream, 1)
-      ["date,open,high,low,close\\n"]
+      [%{"open" => "100.0", "high" => "110.0", ...}]
 
       iex> stream(999)
       {:error, :not_found}
@@ -123,34 +126,36 @@ defmodule SimpleElixirServer.RunDataStore do
     file_path = file_path(run_id)
 
     if File.exists?(file_path) do
-      {:ok, file_path |> File.stream!() |> ensure_headers()}
+      stream =
+        file_path
+        |> File.stream!()
+        |> CSV.decode(headers: false)
+        |> Stream.transform(:first_row, fn
+          {:ok, row_list}, :first_row ->
+            if is_header_row?(row_list) do
+              {[], :data_rows}
+            else
+              {[list_to_map(row_list)], :data_rows}
+            end
+
+          {:ok, row_list}, :data_rows ->
+            {[list_to_map(row_list)], :data_rows}
+
+          {:error, _reason}, state ->
+            {[], state}
+        end)
+
+      {:ok, stream}
     else
       {:error, :not_found}
     end
   end
 
-  defp ensure_headers(csv_stream) do
-    Stream.transform(csv_stream, :first_row, fn
-      line, :first_row ->
-        trimmed = String.trim(line)
+  defp is_header_row?(row_list) do
+    Enum.any?(row_list, fn value ->
+      trimmed = String.trim(value)
 
-        if has_header?(trimmed) do
-          {[line], :pass_through}
-        else
-          header = generate_header(trimmed)
-          {[header, line], :pass_through}
-        end
-
-      line, :pass_through ->
-        {[line], :pass_through}
-    end)
-  end
-
-  defp has_header?(line) do
-    fields = String.split(line, ",") |> Enum.map(&String.trim/1)
-
-    Enum.any?(fields, fn field ->
-      case Float.parse(field) do
+      case Float.parse(trimmed) do
         {_float, ""} -> false
         :error -> true
         _ -> false
@@ -158,16 +163,15 @@ defmodule SimpleElixirServer.RunDataStore do
     end)
   end
 
-  defp generate_header(line) do
-    field_count = line |> String.split(",") |> length()
-
-    case field_count do
-      4 -> "open,high,low,close"
-      5 -> "open,high,low,close,volume"
-      6 -> "timestamp,open,high,low,close,volume"
-      _ -> "open,high,low,close"
-    end
+  defp list_to_map(row_list) do
+    keys = generate_keys(length(row_list))
+    Enum.zip(keys, row_list) |> Map.new()
   end
+
+  defp generate_keys(4), do: ["open", "high", "low", "close"]
+  defp generate_keys(5), do: ["open", "high", "low", "close", "volume"]
+  defp generate_keys(6), do: ["timestamp", "open", "high", "low", "close", "volume"]
+  defp generate_keys(_), do: ["open", "high", "low", "close"]
 
   defp file_path(run_id) do
     Path.join(storage_path(), "#{run_id}.csv")
