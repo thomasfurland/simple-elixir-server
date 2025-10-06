@@ -103,6 +103,32 @@ defmodule SimpleElixirServer.RunDataStore do
     File.exists?(file_path)
   end
 
+  @doc """
+  Returns a stream for the CSV data of a given run.
+
+  ## Parameters
+    - run_id: The ID of the run
+
+  ## Examples
+
+      iex> {:ok, stream} = stream(123)
+      iex> Enum.take(stream, 1)
+      ["date,open,high,low,close\\n"]
+
+      iex> stream(999)
+      {:error, :not_found}
+
+  """
+  def stream(run_id) do
+    file_path = file_path(run_id)
+
+    if File.exists?(file_path) do
+      {:ok, File.stream!(file_path)}
+    else
+      {:error, :not_found}
+    end
+  end
+
   defp file_path(run_id) do
     Path.join(storage_path(), "#{run_id}.csv")
   end

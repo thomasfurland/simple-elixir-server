@@ -30,10 +30,10 @@ defmodule SimpleJobProcessor.Workers do
       @behaviour SimpleJobProcessor.Workers
 
       @impl Oban.Worker
-      def perform(%Oban.Job{args: %{"run_id" => run_id, "filepath" => filepath}}) do
+      def perform(%Oban.Job{args: %{"run_id" => run_id}}) do
         with {:ok, run} <- SimpleElixirServer.Runs.find(run_id),
-             {:ok, csv_path} <- resolve_filepath(filepath),
-             {:ok, results} <- process_csv(csv_path) do
+             {:ok, csv_stream} <- SimpleElixirServer.RunDataStore.stream(run_id),
+             {:ok, results} <- process_csv(csv_stream) do
           outcomes =
             run.outcomes
             |> Kernel.||(%{})
@@ -41,7 +41,6 @@ defmodule SimpleJobProcessor.Workers do
               "worker" => __MODULE__ |> to_string() |> String.split(".") |> List.last(),
               "status" => "completed",
               "results" => results,
-              "filepath" => filepath,
               "rows_processed" => Map.get(results, "rows_processed", 0)
             })
 
@@ -51,10 +50,7 @@ defmodule SimpleJobProcessor.Workers do
           end
         else
           {:error, :not_found} ->
-            mark_failed(run_id, "Run not found")
-
-          {:error, :file_not_found} ->
-            mark_failed(run_id, "CSV file not found at path: #{filepath}")
+            mark_failed(run_id, "Run or CSV data not found")
 
           {:error, reason} when is_binary(reason) ->
             mark_failed(run_id, reason)
@@ -64,22 +60,10 @@ defmodule SimpleJobProcessor.Workers do
         end
       end
 
-      def perform(_job), do: {:error, "Invalid job arguments: expected run_id and filepath"}
+      def perform(_job), do: {:error, "Invalid job arguments: expected run_id"}
 
-      defp resolve_filepath(filepath) do
-        base_path = Application.app_dir(:simple_job_processor, "priv/data")
-        full_path = Path.join(base_path, filepath)
-
-        if File.exists?(full_path) do
-          {:ok, full_path}
-        else
-          {:error, :file_not_found}
-        end
-      end
-
-      defp process_csv(csv_path) do
-        csv_path
-        |> File.stream!()
+      defp process_csv(csv_stream) do
+        csv_stream
         |> CSV.decode(headers: true)
         |> Enum.reduce_while({:ok, %{}}, fn
           {:ok, row}, {:ok, accumulated} ->

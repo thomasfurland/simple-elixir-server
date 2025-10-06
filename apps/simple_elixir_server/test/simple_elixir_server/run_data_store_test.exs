@@ -98,6 +98,27 @@ defmodule SimpleElixirServer.RunDataStoreTest do
     end
   end
 
+  describe "stream/1" do
+    test "returns a stream for existing CSV file" do
+      RunDataStore.write(@test_run_id, @sample_csv_data)
+      assert {:ok, stream} = RunDataStore.stream(@test_run_id)
+      assert is_function(stream.enum_fun)
+    end
+
+    test "stream can be enumerated" do
+      RunDataStore.write(@test_run_id, @sample_csv_data)
+      {:ok, stream} = RunDataStore.stream(@test_run_id)
+
+      lines = Enum.to_list(stream)
+      assert length(lines) == 3
+      assert hd(lines) =~ "date,open,high,low,close,volume"
+    end
+
+    test "returns error for non-existent file" do
+      assert {:error, :not_found} = RunDataStore.stream(@test_run_id)
+    end
+  end
+
   describe "multiple runs" do
     test "can store data for multiple runs independently" do
       run_id_1 = 11111
