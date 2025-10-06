@@ -40,7 +40,8 @@ defmodule SimpleElixirServerWeb.RunsControllerTest do
     end
 
     test "displays run metadata correctly", %{conn: conn, user: user} do
-      run = run_fixture(%{user_id: user.id, title: "Test Run", outcomes: %{"status" => "success"}})
+      run =
+        run_fixture(%{user_id: user.id, title: "Test Run", outcomes: %{"status" => "success"}})
 
       conn = get(conn, ~p"/runs")
       response = html_response(conn, 200)
