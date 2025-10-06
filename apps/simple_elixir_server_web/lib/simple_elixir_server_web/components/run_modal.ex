@@ -31,7 +31,7 @@ defmodule SimpleElixirServerWeb.RunModal do
             <select name="job_runner" class="select select-bordered w-full">
               <option value="">Select a runner (optional)</option>
               <%= for queue <- @queues do %>
-                <option value={queue}><%= prettify_queue_name(queue) %></option>
+                <option value={queue}>{prettify_queue_name(queue)}</option>
               <% end %>
             </select>
             <label class="label">
