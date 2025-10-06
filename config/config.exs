@@ -85,6 +85,11 @@ config :simple_elixir_server, Oban,
   queues: [default: 10],
   repo: SimpleElixirServer.Repo
 
+config :simple_job_processor, Oban,
+  engine: Oban.Engines.Basic,
+  queues: [event_analysis: 10, data_processing: 10],
+  repo: SimpleElixirServer.Repo
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
