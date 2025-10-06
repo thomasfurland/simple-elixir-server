@@ -103,6 +103,76 @@ defmodule SimpleElixirServer.RunDataStore do
     File.exists?(file_path)
   end
 
+  @doc """
+  Returns a stream of candlestick data maps for a given run.
+
+  Automatically detects and skips header rows, and converts CSV rows to maps
+  with keys based on column count (4=OHLC, 5=OHLCV, 6=timestamp+OHLCV).
+
+  ## Parameters
+    - run_id: The ID of the run
+
+  ## Examples
+
+      iex> {:ok, stream} = stream(123)
+      iex> Enum.take(stream, 1)
+      [%{"open" => "100.0", "high" => "110.0", ...}]
+
+      iex> stream(999)
+      {:error, :not_found}
+
+  """
+  def stream(run_id) do
+    file_path = file_path(run_id)
+
+    if File.exists?(file_path) do
+      stream =
+        file_path
+        |> File.stream!()
+        |> CSV.decode(headers: false)
+        |> Stream.transform(:first_row, fn
+          {:ok, row_list}, :first_row ->
+            if is_header_row?(row_list) do
+              {[], :data_rows}
+            else
+              {[list_to_map(row_list)], :data_rows}
+            end
+
+          {:ok, row_list}, :data_rows ->
+            {[list_to_map(row_list)], :data_rows}
+
+          {:error, _reason}, state ->
+            {[], state}
+        end)
+
+      {:ok, stream}
+    else
+      {:error, :not_found}
+    end
+  end
+
+  defp is_header_row?(row_list) do
+    Enum.any?(row_list, fn value ->
+      trimmed = String.trim(value)
+
+      case Float.parse(trimmed) do
+        {_float, ""} -> false
+        :error -> true
+        _ -> false
+      end
+    end)
+  end
+
+  defp list_to_map(row_list) do
+    keys = generate_keys(length(row_list))
+    Enum.zip(keys, row_list) |> Map.new()
+  end
+
+  defp generate_keys(4), do: ["open", "high", "low", "close"]
+  defp generate_keys(5), do: ["open", "high", "low", "close", "volume"]
+  defp generate_keys(6), do: ["timestamp", "open", "high", "low", "close", "volume"]
+  defp generate_keys(_), do: ["open", "high", "low", "close"]
+
   defp file_path(run_id) do
     Path.join(storage_path(), "#{run_id}.csv")
   end

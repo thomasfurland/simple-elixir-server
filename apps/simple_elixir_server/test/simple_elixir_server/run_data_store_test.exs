@@ -98,6 +98,64 @@ defmodule SimpleElixirServer.RunDataStoreTest do
     end
   end
 
+  describe "stream/1" do
+    test "returns a stream for existing CSV file" do
+      RunDataStore.write(@test_run_id, @sample_csv_data)
+      assert {:ok, stream} = RunDataStore.stream(@test_run_id)
+      assert Enumerable.impl_for(stream) == Enumerable.Function
+    end
+
+    test "stream returns maps with correct keys" do
+      RunDataStore.write(@test_run_id, @sample_csv_data)
+      {:ok, stream} = RunDataStore.stream(@test_run_id)
+
+      rows = Enum.to_list(stream)
+      assert length(rows) == 2
+
+      first_row = hd(rows)
+      assert is_map(first_row)
+      assert Map.has_key?(first_row, "open")
+      assert Map.has_key?(first_row, "high")
+      assert Map.has_key?(first_row, "low")
+      assert Map.has_key?(first_row, "close")
+      assert Map.has_key?(first_row, "volume")
+    end
+
+    test "skips header row automatically" do
+      csv_with_headers = """
+      timestamp,open,high,low,close,volume
+      2024-01-01,100.0,110.0,95.0,105.0,1000000
+      2024-01-02,105.0,115.0,100.0,112.0,1200000
+      """
+
+      RunDataStore.write(@test_run_id, csv_with_headers)
+      {:ok, stream} = RunDataStore.stream(@test_run_id)
+
+      rows = Enum.to_list(stream)
+      assert length(rows) == 2
+      assert hd(rows)["timestamp"] == "2024-01-01"
+    end
+
+    test "processes CSV without headers" do
+      csv_without_headers = """
+      100.0,110.0,95.0,105.0
+      105.0,115.0,100.0,102.0
+      """
+
+      RunDataStore.write(@test_run_id, csv_without_headers)
+      {:ok, stream} = RunDataStore.stream(@test_run_id)
+
+      rows = Enum.to_list(stream)
+      assert length(rows) == 2
+      assert hd(rows)["open"] == "100.0"
+      assert hd(rows)["close"] == "105.0"
+    end
+
+    test "returns error for non-existent file" do
+      assert {:error, :not_found} = RunDataStore.stream(@test_run_id)
+    end
+  end
+
   describe "multiple runs" do
     test "can store data for multiple runs independently" do
       run_id_1 = 11111
