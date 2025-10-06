@@ -75,7 +75,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
       refute has_element?(lv, "#run-modal")
     end
 
-    test "creates run with title", %{conn: conn, user: user} do
+    test "creates run with title", %{conn: conn, user: _user} do
       {:ok, lv, _html} = live(conn, ~p"/runs")
 
       lv |> element("button", "New Run") |> render_click()
@@ -90,7 +90,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
       refute has_element?(lv, "#run-modal")
     end
 
-    test "creates run without title", %{conn: conn, user: user} do
+    test "creates run without title", %{conn: conn, user: _user} do
       {:ok, lv, _html} = live(conn, ~p"/runs")
 
       lv |> element("button", "New Run") |> render_click()

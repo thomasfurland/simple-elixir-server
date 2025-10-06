@@ -6,7 +6,7 @@ defmodule SimpleElixirServerWeb.RunModal do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="modal modal-open">
+    <div id={@id} class="modal modal-open">
       <div class="modal-box">
         <h3 class="font-bold text-lg mb-4">Create New Run</h3>
 
