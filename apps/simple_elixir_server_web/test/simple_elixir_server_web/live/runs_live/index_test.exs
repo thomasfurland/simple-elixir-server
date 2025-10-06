@@ -81,6 +81,20 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
 
       lv |> element("button", "New Run") |> render_click()
 
+      csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
+
+      file =
+        file_input(lv, "#run-form", :candlestick_data, [
+          %{
+            last_modified: 1_594_171_879_000,
+            name: "test.csv",
+            content: csv_content,
+            type: "text/csv"
+          }
+        ])
+
+      render_upload(file, "test.csv")
+
       lv
       |> form("#run-form", %{title: "New Test Run"})
       |> render_submit()
@@ -96,6 +110,20 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
 
       lv |> element("button", "New Run") |> render_click()
 
+      csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
+
+      file =
+        file_input(lv, "#run-form", :candlestick_data, [
+          %{
+            last_modified: 1_594_171_879_000,
+            name: "test.csv",
+            content: csv_content,
+            type: "text/csv"
+          }
+        ])
+
+      render_upload(file, "test.csv")
+
       lv
       |> form("#run-form", %{title: ""})
       |> render_submit()
@@ -109,6 +137,20 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
       {:ok, lv, _html} = live(conn, ~p"/runs")
 
       lv |> element("button", "New Run") |> render_click()
+
+      csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
+
+      file =
+        file_input(lv, "#run-form", :candlestick_data, [
+          %{
+            last_modified: 1_594_171_879_000,
+            name: "test.csv",
+            content: csv_content,
+            type: "text/csv"
+          }
+        ])
+
+      render_upload(file, "test.csv")
 
       lv
       |> form("#run-form", %{title: "Test Run"})
@@ -135,6 +177,20 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
       {:ok, lv, _html} = live(conn, ~p"/runs")
 
       lv |> element("button", "New Run") |> render_click()
+
+      csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
+
+      file =
+        file_input(lv, "#run-form", :candlestick_data, [
+          %{
+            last_modified: 1_594_171_879_000,
+            name: "test.csv",
+            content: csv_content,
+            type: "text/csv"
+          }
+        ])
+
+      render_upload(file, "test.csv")
 
       lv
       |> form("#run-form", %{title: "Test Run with Job", job_runner: "data_processing"})
