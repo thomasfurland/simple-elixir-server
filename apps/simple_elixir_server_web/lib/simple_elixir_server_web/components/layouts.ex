@@ -35,40 +35,73 @@ defmodule SimpleElixirServerWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="navbar px-4 sm:px-6 lg:px-8">
-      <div class="flex-1">
-        <a href="/" class="flex-1 flex w-fit items-center gap-2">
-          <img src={~p"/images/logo.svg"} width="36" />
-          <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-        </a>
-      </div>
-      <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-          </li>
-          <li>
-            <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-          </li>
-          <li>
+    <div class="drawer lg:drawer-open">
+      <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+      <div class="drawer-content flex flex-col">
+        <header class="navbar px-4 sm:px-6 lg:px-8 lg:hidden">
+          <div class="flex-1">
+            <label for="drawer-toggle" class="btn btn-ghost btn-circle">
+              <.icon name="hero-bars-3" class="size-6" />
+            </label>
+          </div>
+          <div class="flex-none">
             <.theme_toggle />
-          </li>
-          <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
+          </div>
+        </header>
+
+        <main class="px-4 py-8 sm:px-6 lg:px-8">
+          <div class="mx-auto max-w-5xl space-y-4">
+            {render_slot(@inner_block)}
+          </div>
+        </main>
+
+        <.flash_group flash={@flash} />
+      </div>
+
+      <div class="drawer-side">
+        <label for="drawer-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
+        <aside class="bg-base-200 min-h-full w-64 p-4">
+          <div class="mb-8">
+            <a href="/" class="flex items-center gap-2">
+              <img src={~p"/images/logo.svg"} width="36" />
+              <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
             </a>
-          </li>
-        </ul>
-      </div>
-    </header>
+          </div>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
-        {render_slot(@inner_block)}
-      </div>
-    </main>
+          <ul class="menu space-y-2">
+            <li>
+              <a href={~p"/"}>
+                <.icon name="hero-home" class="size-5" /> Home
+              </a>
+            </li>
+            <li>
+              <a href={~p"/runs"}>
+                <.icon name="hero-play" class="size-5" /> Runs
+              </a>
+            </li>
+            <li>
+              <a href="https://phoenixframework.org/" target="_blank">
+                <.icon name="hero-globe-alt" class="size-5" /> Website
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/phoenixframework/phoenix" target="_blank">
+                <.icon name="hero-code-bracket" class="size-5" /> GitHub
+              </a>
+            </li>
+            <li>
+              <a href="https://hexdocs.pm/phoenix/overview.html" target="_blank">
+                <.icon name="hero-book-open" class="size-5" /> Get Started
+              </a>
+            </li>
+          </ul>
 
-    <.flash_group flash={@flash} />
+          <div class="absolute bottom-4 left-4 hidden lg:block">
+            <.theme_toggle />
+          </div>
+        </aside>
+      </div>
+    </div>
     """
   end
 

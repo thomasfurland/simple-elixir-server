@@ -18,13 +18,13 @@ defmodule SimpleElixirServerWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/runs"
 
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
       assert response =~ user.email
-      assert response =~ ~p"/users/settings"
+      assert response =~ ~p"/runs"
       assert response =~ ~p"/users/log-out"
     end
 
@@ -41,7 +41,7 @@ defmodule SimpleElixirServerWeb.UserSessionControllerTest do
         })
 
       assert conn.resp_cookies["_simple_elixir_server_web_user_remember_me"]
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/runs"
     end
 
     test "logs the user in with return to", %{conn: conn, user: user} do
@@ -82,13 +82,13 @@ defmodule SimpleElixirServerWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/runs"
 
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
       assert response =~ user.email
-      assert response =~ ~p"/users/settings"
+      assert response =~ ~p"/runs"
       assert response =~ ~p"/users/log-out"
     end
 
@@ -103,7 +103,7 @@ defmodule SimpleElixirServerWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/runs"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "User confirmed successfully."
 
       assert Accounts.get_user!(user.id).confirmed_at
@@ -112,7 +112,7 @@ defmodule SimpleElixirServerWeb.UserSessionControllerTest do
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
       assert response =~ user.email
-      assert response =~ ~p"/users/settings"
+      assert response =~ ~p"/runs"
       assert response =~ ~p"/users/log-out"
     end
 

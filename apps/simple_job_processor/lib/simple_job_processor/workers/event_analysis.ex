@@ -5,7 +5,11 @@ defmodule SimpleJobProcessor.Workers.EventAnalysis do
   def perform(%Oban.Job{args: %{"run_id" => run_id}}) do
     case SimpleElixirServer.Runs.find(run_id) do
       {:ok, run} ->
-        updated_outcomes = Map.put(run.outcomes, "executed_by", "event_analysis")
+        updated_outcomes =
+          run.outcomes
+          |> Map.put("executed_by", "event_analysis")
+          |> Map.put("status", "completed")
+
         SimpleElixirServer.Runs.update(run, %{outcomes: updated_outcomes})
         :ok
 
