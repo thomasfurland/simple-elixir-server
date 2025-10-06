@@ -20,6 +20,7 @@ defmodule SimpleElixirServerWeb.RunModal do
             <input
               type="text"
               name="title"
+              value={@form[:title].value}
               placeholder="Optional run title"
               class="input input-bordered w-full"
             />
@@ -32,7 +33,9 @@ defmodule SimpleElixirServerWeb.RunModal do
             <select name="job_runner" class="select select-bordered w-full" required>
               <option value="">Select a runner</option>
               <%= for queue <- @queues do %>
-                <option value={queue}>{prettify_queue_name(queue)}</option>
+                <option value={queue} selected={@form[:job_runner].value == queue}>
+                  {prettify_queue_name(queue)}
+                </option>
               <% end %>
             </select>
           </div>
