@@ -84,7 +84,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
       csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
 
       file =
-        file_input(lv, "#run-modal", :candlestick_data, [
+        file_input(lv, "#run-form", :candlestick_data, [
           %{
             last_modified: 1_594_171_879_000,
             name: "test.csv",
@@ -113,7 +113,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
       csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
 
       file =
-        file_input(lv, "#run-modal", :candlestick_data, [
+        file_input(lv, "#run-form", :candlestick_data, [
           %{
             last_modified: 1_594_171_879_000,
             name: "test.csv",
@@ -141,7 +141,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
       csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
 
       file =
-        file_input(lv, "#run-modal", :candlestick_data, [
+        file_input(lv, "#run-form", :candlestick_data, [
           %{
             last_modified: 1_594_171_879_000,
             name: "test.csv",
@@ -181,7 +181,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
       csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
 
       file =
-        file_input(lv, "#run-modal", :candlestick_data, [
+        file_input(lv, "#run-form", :candlestick_data, [
           %{
             last_modified: 1_594_171_879_000,
             name: "test.csv",
