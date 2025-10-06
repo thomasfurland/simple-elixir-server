@@ -59,6 +59,7 @@ defmodule SimpleElixirServerWeb.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
       {:simple_elixir_server, in_umbrella: true},
+      {:simple_job_processor, in_umbrella: true},
       {:jason, "~> 1.2"},
       {:bandit, "~> 1.5"}
     ]

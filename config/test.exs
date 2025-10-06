@@ -38,3 +38,10 @@ config :phoenix, :plug_init_mode, :runtime
 # Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
+
+# Configure Oban for testing
+config :simple_job_processor, Oban,
+  repo: SimpleElixirServer.Repo,
+  queues: [event_analysis: 1, data_processing: 1],
+  plugins: false,
+  testing: :manual
