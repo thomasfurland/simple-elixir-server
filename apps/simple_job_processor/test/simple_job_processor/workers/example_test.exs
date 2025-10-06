@@ -136,5 +136,30 @@ defmodule SimpleJobProcessor.Workers.ExampleTest do
       assert {:error, message} = Example.perform(job)
       assert message =~ "Invalid job arguments"
     end
+
+    test "processes CSV without headers" do
+      Oban.Testing.with_testing_mode(:inline, fn ->
+        csv_without_headers = """
+        100.0,110.0,95.0,105.0
+        105.0,115.0,100.0,102.0
+        """
+
+        {:ok, user} =
+          SimpleElixirServer.Accounts.register_user(%{
+            email: "test3@example.com",
+            password: "password123456"
+          })
+
+        {:ok, run} = Runs.create(%{user_id: user.id, title: "No Headers Test"})
+        :ok = RunDataStore.write(run.id, csv_without_headers)
+
+        assert {:ok, %Oban.Job{state: "completed"}} =
+                 Example.new(%{"run_id" => run.id}) |> Oban.insert()
+
+        {:ok, updated_run} = Runs.find(run.id)
+        assert updated_run.outcomes["status"] == "completed"
+        assert updated_run.outcomes["rows_processed"] == 2
+      end)
+    end
   end
 end
