@@ -108,6 +108,11 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
       socket
       |> assign(:runs, runs)
       |> assign(:show_modal, false)
+      |> allow_upload(:candlestick_data,
+        accept: ~w(.csv),
+        max_entries: 1,
+        max_file_size: 10_000_000
+      )
 
     {:ok, socket}
   end

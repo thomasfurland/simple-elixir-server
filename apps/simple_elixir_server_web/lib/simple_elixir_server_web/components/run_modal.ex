@@ -68,17 +68,7 @@ defmodule SimpleElixirServerWeb.RunModal do
   @impl true
   def mount(socket) do
     queues = WorkerLookup.list_queues()
-
-    socket =
-      socket
-      |> assign(form: to_form(%{}), queues: queues)
-      |> allow_upload(:candlestick_data,
-        accept: ~w(.csv),
-        max_entries: 1,
-        max_file_size: 10_000_000
-      )
-
-    {:ok, socket}
+    {:ok, assign(socket, form: to_form(%{}), queues: queues)}
   end
 
   defp prettify_queue_name(queue_name) do
