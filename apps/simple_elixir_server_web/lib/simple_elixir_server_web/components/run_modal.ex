@@ -12,7 +12,7 @@ defmodule SimpleElixirServerWeb.RunModal do
       <div class="modal-box">
         <h3 class="font-bold text-lg mb-4">Create New Run</h3>
 
-        <.form for={@form} id="run-form" phx-target={@myself} phx-submit="save">
+        <.form for={@form} id="run-form" phx-target={@myself} phx-change="validate" phx-submit="save">
           <div class="form-control mb-4">
             <label class="label">
               <span class="label-text">Title</span>
@@ -87,6 +87,11 @@ defmodule SimpleElixirServerWeb.RunModal do
     |> String.split("_")
     |> Enum.map(&String.capitalize/1)
     |> Enum.join(" ")
+  end
+
+  @impl true
+  def handle_event("validate", _params, socket) do
+    {:noreply, socket}
   end
 
   @impl true
