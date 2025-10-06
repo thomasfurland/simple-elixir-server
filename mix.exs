@@ -12,7 +12,8 @@ defmodule SimpleElixirServer.Umbrella.MixProject do
       releases: [
         simple_elixir_server: [
           applications: [
-            simple_elixir_server_web: :permanent
+            simple_elixir_server_web: :permanent,
+            simple_job_processor: :permanent
           ]
         ]
       ]
@@ -41,7 +42,8 @@ defmodule SimpleElixirServer.Umbrella.MixProject do
     [
       # Required to run "mix format" on ~H/.heex files from the umbrella root
       {:phoenix_live_view, ">= 0.0.0"},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:oban, "~> 2.18"}
     ]
   end
 
