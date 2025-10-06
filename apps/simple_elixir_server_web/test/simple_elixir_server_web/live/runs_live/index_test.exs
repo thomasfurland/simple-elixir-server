@@ -1,5 +1,6 @@
 defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
   use SimpleElixirServerWeb.ConnCase
+  use Oban.Testing, repo: SimpleElixirServer.Repo
 
   import Phoenix.LiveViewTest
   import SimpleElixirServer.AccountsFixtures
@@ -126,8 +127,20 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
       lv |> element("button", "New Run") |> render_click()
 
       assert has_element?(lv, "select[name='job_runner']")
-      assert has_element?(lv, "option", "Runner One")
-      assert has_element?(lv, "option", "Runner Two")
+      assert has_element?(lv, "option", "Data Processing")
+      assert has_element?(lv, "option", "Event Analysis")
+    end
+
+    test "enqueues oban job when job runner is selected", %{conn: conn, user: _user} do
+      {:ok, lv, _html} = live(conn, ~p"/runs")
+
+      lv |> element("button", "New Run") |> render_click()
+
+      lv
+      |> form("#run-form", %{title: "Test Run with Job", job_runner: "data_processing"})
+      |> render_submit()
+
+      assert_enqueued(worker: SimpleJobProcessor.Workers.DataProcessing)
     end
   end
 end
