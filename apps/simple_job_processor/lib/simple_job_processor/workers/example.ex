@@ -1,7 +1,7 @@
 defmodule SimpleJobProcessor.Workers.Example do
   @moduledoc """
   Example worker demonstrating the Workers behavior.
-  
+
   This worker analyzes candlestick data and tracks:
   - Total candles processed
   - Average close price
@@ -9,7 +9,7 @@ defmodule SimpleJobProcessor.Workers.Example do
   - Number of bullish vs bearish candles
   """
 
-  use SimpleJobProcessor.Workers
+  use SimpleJobProcessor.Workers, queue: :example
 
   @impl SimpleJobProcessor.Workers
   def analyze(row, accumulated) do
@@ -20,7 +20,7 @@ defmodule SimpleJobProcessor.Workers.Example do
 
     count = Map.get(accumulated, "count", 0) + 1
     total_close = Map.get(accumulated, "total_close", 0.0) + close
-    
+
     bullish_count =
       if close > open,
         do: Map.get(accumulated, "bullish_count", 0) + 1,

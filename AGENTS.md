@@ -14,17 +14,17 @@ Below are separate objectives for each agent to work on. Agents will only work o
 
 ## Agent: amp-one
 **Scope**
-- we want to tie everything together now and this ticket will be the one to do it. Within the new run modal we want to list out all workers from SimpleJobProcessor.WorkerLookup.list_queues(). When the user submits the form we want to do the queue_to_module lookup and on success enqueue a job with oban. On error we push up the message We want both of the existing stub workers to update the outcome json in runs table to include the __SELF__ that executed the task.
+- I want to create a behaviour (using Module) that simplifies and standardizes worker creation for our Event Analysis Engine. This module will inject its own perform method that will expect run_id and filepath to candlestick data (csv file) as inputs. It will then pull in the csv file and iterate it leaving room for a callback that the using module will be expected to generate. This callback will be collecting data while passing it through (think Enum.map), so that an outcome map can be generated. These results will then be taken from the using module where we will then bundle it and push it to the runs table behind the scenes. This module needs to inject basically everything an oban module would need to run, resulting in us just requiring an analzye function from the using module. Please create a basic test worker that uses this behaviour so we can see how it runs and what it outputs. This is for Backtesting strategies qualitatively so keep that in mind. Ask Questions.
 
 **Tasks**
-- update modal drop down to include prettified versions of queue names from SimpleJobProcessor.WorkerLookup.list_queues()
-- input the selected option in SimpleJobProcessor.WorkerLookup.queue_to_module/1. Enqeueue on success, push errors up to form on failure
-- update both existing workers in SimpleJobProcessor.Workers to update the runs field associated with them to include their name in outcome json.
-- do one single integration test for modal where we only check if job was enqueued successfully. Use Oban.Testing module to help
+- create behaviour module in worker.ex context file using the description i gave
+- create example worker in /workers directory that uses the behaviour and only implements the analyze function.
+- create simple test for example worker so we know this behaviour works
 
 **Expected Outputs**
-- `amp-one/apps/simple_elixir_server_web/lib/simple_elixir_server_web/components/run_modal.ex`
-- `amp-one/apps/simple_elixir_server_web/test/simple_elixir_server_web/live/runs_live/index_test.exs`
+- `/apps/simple_job_processor/lib/simple_job_processor/workers.ex`
+- `/apps/simple_job_processor/lib/simple_job_processor/workers/example.ex`
+- `/apps/simple_job_processor/test/simple_job_processor/workers/example_test.exs`
 - any other files we may need
 
 ---

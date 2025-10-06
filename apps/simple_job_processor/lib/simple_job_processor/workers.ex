@@ -1,15 +1,15 @@
 defmodule SimpleJobProcessor.Workers do
   @moduledoc """
   Behavior for creating standardized Oban workers for the Event Analysis Engine.
-  
+
   This module injects a `perform/1` function that:
   - Accepts `run_id` and `filepath` arguments
   - Loads and parses CSV candlestick data
   - Iterates through each row, calling the implementing module's `analyze/2` callback
   - Collects results and updates the run with outcomes
-  
+
   ## Usage
-  
+
       defmodule MyWorker do
         use SimpleJobProcessor.Workers
         
@@ -23,9 +23,9 @@ defmodule SimpleJobProcessor.Workers do
 
   @callback analyze(row :: map(), accumulated :: map()) :: map()
 
-  defmacro __using__(_opts) do
+  defmacro __using__(opts) do
     quote do
-      use Oban.Worker, queue: :event_analysis
+      use Oban.Worker, unquote(opts)
 
       @behaviour SimpleJobProcessor.Workers
 
@@ -89,8 +89,7 @@ defmodule SimpleJobProcessor.Workers do
               {:cont, {:ok, Map.put(updated, "rows_processed", rows_count)}}
             rescue
               e ->
-                {:halt,
-                 {:error, "Error in analyze/2 callback: #{Exception.message(e)}"}}
+                {:halt, {:error, "Error in analyze/2 callback: #{Exception.message(e)}"}}
             end
 
           {:error, reason}, _acc ->
