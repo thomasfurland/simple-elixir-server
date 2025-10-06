@@ -105,7 +105,7 @@ defmodule SimpleElixirServerWeb.RunModal do
   defp enqueue_job(queue_name, run_id) do
     case WorkerLookup.queue_to_module(queue_name) do
       {:ok, worker_module} ->
-        case Oban.insert(worker_module.new(%{"run_id" => run_id})) do
+        case Oban.insert(Oban, worker_module.new(%{"run_id" => run_id})) do
           {:ok, _job} -> :ok
           {:error, _changeset} -> {:error, "Failed to enqueue job"}
         end
