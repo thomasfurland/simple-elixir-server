@@ -41,7 +41,7 @@ defmodule SimpleElixirServerWeb.UserSessionControllerTest do
         })
 
       assert conn.resp_cookies["_simple_elixir_server_web_user_remember_me"]
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/runs"
     end
 
     test "logs the user in with return to", %{conn: conn, user: user} do
