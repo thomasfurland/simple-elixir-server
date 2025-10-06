@@ -28,17 +28,12 @@ defmodule SimpleElixirServerWeb.RunModal do
             <label class="label">
               <span class="label-text">Job Runner</span>
             </label>
-            <select name="job_runner" class="select select-bordered w-full">
-              <option value="">Select a runner (optional)</option>
+            <select name="job_runner" class="select select-bordered w-full" required>
+              <option value="">Select a runner</option>
               <%= for queue <- @queues do %>
                 <option value={queue}>{prettify_queue_name(queue)}</option>
               <% end %>
             </select>
-            <label class="label">
-              <span class="label-text-alt text-base-content/60">
-                Runner will be used later in the workflow
-              </span>
-            </label>
           </div>
 
           <div class="modal-action">
