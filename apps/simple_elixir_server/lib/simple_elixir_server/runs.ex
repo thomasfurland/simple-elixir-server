@@ -57,7 +57,7 @@ defmodule SimpleElixirServer.Runs do
 
   """
   def find_all(filters \\ %{}) do
-    query = from r in Run
+    query = from(r in Run)
 
     query =
       Enum.reduce(filters, query, fn

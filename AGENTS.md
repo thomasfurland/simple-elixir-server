@@ -12,35 +12,23 @@ Below are separate objectives for each agent to work on. Agents will only work o
 
 ## Agent: amp-one
 **Scope**
-- Setup Oban Pipeline called SimpleJobProcessor for tests and deployments
+- Setup create, find, find_all, update, delete functions for the runs table that we now have
 
 **Tasks**
-- import oban into umbrella mix file
-- create new app inside umbrella using the command `mix new`. 
-- Setup Oban in config. We use the repo in the SimpleElixirServer app
-- generate ecto migration using info found at `https://hexdocs.pm/oban/Oban.Migration.html`
-- update release in umbrella mix file to ensure we start oban application as an additional app
+- read ecto schema files for runs
+- create create, find, find_all, update, delete functions for runs
+- add useful tests for created functions in runs_test, along with fixtures for easier tests in future
 
 **Expected Outputs**
-- `amp-one/mix.exs`
-- `amp-one/config/config.exs`
-- `amp-one/apps/simple_job_processor`
-- `amp-one/apps/simple_elixir_server/priv/repo/migrations/timestamp_add_oban.exs`
+- `amp-one/apps/simple_elixir_server/lib/simple_elixir_server/runs.ex`
+- `amp-one/apps/simple_elixir_server/test/simple_elixir_server/runs_test.exs`
 
 ---
 
 ## Agent: amp-two
 **Scope**
-- create runs table in ecto. we want standard id, foreign key for user id, outcomes as json, nullable title
 
 **Tasks**
-- create ecto migration
-- create ecto schema file with changeset functions
-- create tests for changeset functions
 
 **Expected Outputs**
-- `amp-two/apps/simple_elixir_server/priv/repo/migrations/timestamp_add_oban.exs`
-- `amp-two/apps/simple_elixir_server/lib/simple_elixir_server/runs/run.ex`
-- `amp-two/apps/simple_elixir_server/test/simple_elixir_server/runs_test.exs`
-
 
