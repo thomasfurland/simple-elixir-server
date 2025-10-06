@@ -6,12 +6,9 @@ defmodule SimpleElixirServer.RunDataStore do
 
   @doc """
   Returns the absolute path to the run data storage directory.
-  Creates the directory if it doesn't exist.
   """
   def storage_path do
-    path = Path.join(:code.priv_dir(:simple_elixir_server), "run_data")
-    File.mkdir_p!(path)
-    path
+    Path.join(:code.priv_dir(:simple_elixir_server), "run_data")
   end
 
   @doc """

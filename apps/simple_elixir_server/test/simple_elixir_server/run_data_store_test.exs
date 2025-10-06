@@ -12,7 +12,16 @@ defmodule SimpleElixirServer.RunDataStoreTest do
 
   setup do
     on_exit(fn ->
-      RunDataStore.delete(@test_run_id)
+      clean_storage_directory()
+    end)
+  end
+
+  defp clean_storage_directory do
+    RunDataStore.storage_path()
+    |> File.ls!()
+    |> Enum.reject(&(&1 == ".gitkeep"))
+    |> Enum.each(fn file ->
+      File.rm!(Path.join(RunDataStore.storage_path(), file))
     end)
   end
 
@@ -23,7 +32,7 @@ defmodule SimpleElixirServer.RunDataStoreTest do
       assert String.contains?(path, "run_data")
     end
 
-    test "creates the directory if it doesn't exist" do
+    test "directory exists" do
       path = RunDataStore.storage_path()
       assert File.dir?(path)
     end
@@ -102,9 +111,6 @@ defmodule SimpleElixirServer.RunDataStoreTest do
 
       assert {:ok, ^data_1} = RunDataStore.read(run_id_1)
       assert {:ok, ^data_2} = RunDataStore.read(run_id_2)
-
-      RunDataStore.delete(run_id_1)
-      RunDataStore.delete(run_id_2)
     end
   end
 end
