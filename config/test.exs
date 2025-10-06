@@ -40,4 +40,8 @@ config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 
 # Configure Oban for testing
-config :simple_job_processor, Oban, testing: :inline
+config :simple_job_processor, Oban,
+  repo: SimpleElixirServer.Repo,
+  queues: [event_analysis: 10, data_processing: 10],
+  plugins: false,
+  testing: :inline

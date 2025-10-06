@@ -8,8 +8,7 @@ defmodule SimpleJobProcessor.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: SimpleJobProcessor.Worker.start_link(arg)
-      # {SimpleJobProcessor.Worker, arg}
+      {Oban, Application.get_env(:simple_job_processor, Oban)}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
