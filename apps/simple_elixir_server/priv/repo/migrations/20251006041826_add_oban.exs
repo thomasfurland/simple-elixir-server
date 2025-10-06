@@ -2,10 +2,10 @@ defmodule SimpleElixirServer.Repo.Migrations.AddOban do
   use Ecto.Migration
 
   def up do
-    Oban.Migration.up()
+    Oban.Migrations.up()
   end
 
   def down do
-    Oban.Migration.down()
+    Oban.Migrations.down()
   end
 end
