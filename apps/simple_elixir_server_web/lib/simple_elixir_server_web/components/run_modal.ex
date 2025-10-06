@@ -2,6 +2,7 @@ defmodule SimpleElixirServerWeb.RunModal do
   use SimpleElixirServerWeb, :live_component
 
   alias SimpleElixirServer.Runs
+  alias SimpleElixirServer.RunDataStore
   alias SimpleJobProcessor.WorkerLookup
 
   @impl true
@@ -36,6 +37,22 @@ defmodule SimpleElixirServerWeb.RunModal do
             </select>
           </div>
 
+          <div class="form-control mb-4">
+            <label class="label">
+              <span class="label-text">Candlestick Data (required)</span>
+            </label>
+            <.live_file_input
+              upload={@uploads.candlestick_data}
+              class="file-input file-input-bordered w-full"
+              required
+            />
+            <label class="label">
+              <span class="label-text-alt">
+                CSV file with 4, 5, or 6 columns (OHLC, OHLCV, or timestamp+OHLCV)
+              </span>
+            </label>
+          </div>
+
           <div class="modal-action">
             <button type="button" class="btn" phx-click="close_modal">Cancel</button>
             <button type="submit" class="btn btn-primary" phx-disable-with="Creating...">
@@ -51,7 +68,17 @@ defmodule SimpleElixirServerWeb.RunModal do
   @impl true
   def mount(socket) do
     queues = WorkerLookup.list_queues()
-    {:ok, assign(socket, form: to_form(%{}), queues: queues)}
+
+    socket =
+      socket
+      |> assign(form: to_form(%{}), queues: queues)
+      |> allow_upload(:candlestick_data,
+        accept: ~w(.csv),
+        max_entries: 1,
+        max_file_size: 10_000_000
+      )
+
+    {:ok, socket}
   end
 
   defp prettify_queue_name(queue_name) do
@@ -63,6 +90,33 @@ defmodule SimpleElixirServerWeb.RunModal do
 
   @impl true
   def handle_event("save", params, socket) do
+    uploaded_files =
+      consume_uploaded_entries(socket, :candlestick_data, fn %{path: temp_path}, _entry ->
+        case File.read(temp_path) do
+          {:ok, csv_content} -> {:ok, csv_content}
+          {:error, reason} -> {:postpone, {:file_read_error, reason}}
+        end
+      end)
+
+    case uploaded_files do
+      [csv_content] ->
+        case RunDataStore.validate_csv(csv_content) do
+          :ok ->
+            create_run_with_data(params, socket, csv_content)
+
+          {:error, validation_error} ->
+            {:noreply, put_flash(socket, :error, validation_error)}
+        end
+
+      [] ->
+        {:noreply, put_flash(socket, :error, "Candlestick data file is required")}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, "Failed to read uploaded file")}
+    end
+  end
+
+  defp create_run_with_data(params, socket, csv_content) do
     user_id = socket.assigns.current_scope.user.id
     title = params["title"]
     job_runner = params["job_runner"]
@@ -80,14 +134,23 @@ defmodule SimpleElixirServerWeb.RunModal do
 
     case Runs.create(attrs) do
       {:ok, run} ->
-        case enqueue_job(job_runner, run.id) do
+        case RunDataStore.write(run.id, csv_content) do
           :ok ->
-            send(self(), {:run_created, run})
-            {:noreply, socket}
+            case enqueue_job(job_runner, run.id) do
+              :ok ->
+                send(self(), {:run_created, run})
+                {:noreply, socket}
 
-          {:error, error_message} ->
-            send(self(), {:put_flash, :error, error_message})
-            {:noreply, put_flash(socket, :error, error_message)}
+              {:error, error_message} ->
+                send(self(), {:put_flash, :error, error_message})
+                {:noreply, put_flash(socket, :error, error_message)}
+            end
+
+          {:error, reason} ->
+            Runs.delete(run)
+
+            {:noreply,
+             put_flash(socket, :error, "Failed to save candlestick data: #{inspect(reason)}")}
         end
 
       {:error, changeset} ->

@@ -14,17 +14,29 @@ Below are separate objectives for each agent to work on. Agents will only work o
 
 ## Agent: amp-one
 **Scope**
-- I want to create a behaviour (using Module) that simplifies and standardizes worker creation for our Event Analysis Engine. This module will inject its own perform method that will expect run_id and filepath to candlestick data (csv file) as inputs. It will then pull in the csv file and iterate it leaving room for a callback that the using module will be expected to generate. This callback will be collecting data while passing it through (think Enum.map), so that an outcome map can be generated. These results will then be taken from the using module where we will then bundle it and push it to the runs table behind the scenes. This module needs to inject basically everything an oban module would need to run, resulting in us just requiring an analzye function from the using module. Please create a basic test worker that uses this behaviour so we can see how it runs and what it outputs. This is for Backtesting strategies qualitatively so keep that in mind. Ask Questions.
+- final ticket for this milestone. We still need to implement the candlestick data import in the modal. So the workers have data to process. Candlestick files should be streamed in the usual live view way: 
+
+consume_uploaded_entries(socket, :candlestick_data, fn %{path: temp_path}, _entry ->
+  {:ok, csv} = File.read(temp_path)
+  RunDataStore.write(run_id, csv)
+  {:ok, run_id}
+end)
+
+We want to name the file the run id and we want to use the simple_elixir_server.run_data_store to do so.
+We want to ensure files are saved with the expected 4,5,6 format so make sure we test for this and provide feedback on the form incase they dont comply. refer to and write in run data store module.
+
+Do we need tests? or is it easy to test? if not we can skip
 
 **Tasks**
-- create behaviour module in worker.ex context file using the description i gave
-- create example worker in /workers directory that uses the behaviour and only implements the analyze function.
-- create simple test for example worker so we know this behaviour works
+- update modal with file dropin labeled candlestick data.
+- ensure uploaded file is csv with correct 4, 5, 6 structure. provide feedback if not
+- upload csv into the correct directory by using run data store functions.
+- add code where necessary
+- create tests if it makes sense
 
 **Expected Outputs**
-- `/apps/simple_job_processor/lib/simple_job_processor/workers.ex`
-- `/apps/simple_job_processor/lib/simple_job_processor/workers/example.ex`
-- `/apps/simple_job_processor/test/simple_job_processor/workers/example_test.exs`
+- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/components/run_modal.ex`
+- `/apps/simple_elixir_server/lib/simple_elixir_server/run_data_store.ex`
 - any other files we may need
 
 ---
