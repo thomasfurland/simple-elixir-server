@@ -102,7 +102,7 @@ defmodule SimpleElixirServer.RunDataStoreTest do
     test "returns a stream for existing CSV file" do
       RunDataStore.write(@test_run_id, @sample_csv_data)
       assert {:ok, stream} = RunDataStore.stream(@test_run_id)
-      assert is_function(stream.enum_fun)
+      assert %File.Stream{} = stream
     end
 
     test "stream can be enumerated" do
