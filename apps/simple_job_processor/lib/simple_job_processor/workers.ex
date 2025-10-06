@@ -96,9 +96,12 @@ defmodule SimpleJobProcessor.Workers do
       end
 
       defp parse_float(value) when is_binary(value) do
-        case Float.parse(value) do
-          {float, _} -> float
-          :error -> value
+        trimmed = String.trim(value)
+        
+        case Float.parse(trimmed) do
+          {float, ""} -> float
+          :error -> trimmed
+          _ -> trimmed
         end
       end
 
