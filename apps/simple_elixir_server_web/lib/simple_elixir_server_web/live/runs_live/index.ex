@@ -94,6 +94,7 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
         module={SimpleElixirServerWeb.RunModal}
         id="run-modal"
         current_scope={@current_scope}
+        uploads={@uploads}
       />
     <% end %>
     """
