@@ -65,13 +65,12 @@ defmodule SimpleJobProcessor.Workers do
       defp process_csv(csv_stream) do
         csv_stream
         |> CSV.decode(headers: true)
-        |> Enum.reduce_while({:ok, %{}}, fn
-          {:ok, row}, {:ok, accumulated} ->
+        |> Enum.reduce_while({:ok, %{}, 0}, fn
+          {:ok, row}, {:ok, accumulated, row_count} ->
             try do
               normalized_row = normalize_row(row)
               updated = analyze(normalized_row, accumulated)
-              rows_count = Map.get(updated, "rows_processed", 0) + 1
-              {:cont, {:ok, Map.put(updated, "rows_processed", rows_count)}}
+              {:cont, {:ok, updated, row_count + 1}}
             rescue
               e ->
                 {:halt, {:error, "Error in analyze/2 callback: #{Exception.message(e)}"}}
@@ -80,6 +79,10 @@ defmodule SimpleJobProcessor.Workers do
           {:error, reason}, _acc ->
             {:halt, {:error, "CSV parsing error: #{inspect(reason)}"}}
         end)
+        |> case do
+          {:ok, results, row_count} -> {:ok, Map.put(results, "rows_processed", row_count)}
+          error -> error
+        end
       rescue
         e in File.Error ->
           {:error, "File error: #{Exception.message(e)}"}

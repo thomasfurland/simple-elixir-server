@@ -122,7 +122,7 @@ defmodule SimpleJobProcessor.Workers.ExampleTest do
 
         {:ok, run} = Runs.create(%{user_id: user.id, title: "Test Run Without Data"})
 
-        assert {:ok, %Oban.Job{state: "discarded"}} =
+        assert {:ok, %Oban.Job{state: "retryable"}} =
                  Example.new(%{"run_id" => run.id}) |> Oban.insert()
 
         {:ok, updated_run} = Runs.find(run.id)

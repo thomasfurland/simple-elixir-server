@@ -102,7 +102,9 @@ defmodule SimpleElixirServer.RunDataStoreTest do
     test "returns a stream for existing CSV file" do
       RunDataStore.write(@test_run_id, @sample_csv_data)
       assert {:ok, stream} = RunDataStore.stream(@test_run_id)
-      assert is_function(stream.reducers)
+      
+      # Verify it's enumerable
+      assert Enumerable.impl_for(stream) != nil
     end
 
     test "stream can be enumerated" do
