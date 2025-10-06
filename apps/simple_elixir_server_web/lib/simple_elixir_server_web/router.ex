@@ -54,9 +54,9 @@ defmodule SimpleElixirServerWeb.Router do
       on_mount: [{SimpleElixirServerWeb.UserAuth, :require_authenticated}] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+      live "/runs", RunsLive.Index, :index
     end
 
-    get "/runs", RunsController, :index
     get "/runs/:id", RunsController, :show
 
     post "/users/update-password", UserSessionController, :update_password
