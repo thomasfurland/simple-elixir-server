@@ -11,7 +11,7 @@ defmodule SimpleJobProcessor.Workers do
   ## Usage
 
       defmodule MyWorker do
-        use SimpleJobProcessor.Workers
+        use SimpleJobProcessor.Workers, queue: :queue_name
         
         @impl true
         def analyze(row, accumulated) do
