@@ -2,6 +2,7 @@ defmodule SimpleJobProcessor.Workers.ExampleTest do
   use ExUnit.Case, async: false
   use Oban.Testing, repo: SimpleElixirServer.Repo
 
+  alias Ecto.Adapters.SQL
   alias SimpleJobProcessor.Workers.Example
   alias SimpleElixirServer.{Repo, Runs, RunDataStore}
 
@@ -13,7 +14,7 @@ defmodule SimpleJobProcessor.Workers.ExampleTest do
   """
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Repo)
+    :ok = SQL.Sandbox.checkout(Repo)
 
     on_exit(fn ->
       clean_test_files()

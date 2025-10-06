@@ -64,7 +64,6 @@ defmodule SimpleJobProcessor.Workers do
 
       defp process_csv(csv_stream) do
         csv_stream
-        |> ensure_headers()
         |> CSV.decode(headers: true)
         |> Enum.reduce_while({:ok, %{}}, fn
           {:ok, row}, {:ok, accumulated} ->
@@ -87,46 +86,6 @@ defmodule SimpleJobProcessor.Workers do
 
         e ->
           {:error, "Unexpected error: #{Exception.message(e)}"}
-      end
-
-      defp ensure_headers(csv_stream) do
-        Stream.transform(csv_stream, :first_row, fn
-          line, :first_row ->
-            trimmed = String.trim(line)
-
-            if has_header?(trimmed) do
-              {[line], :pass_through}
-            else
-              header = generate_header(trimmed)
-              {[header, line], :pass_through}
-            end
-
-          line, :pass_through ->
-            {[line], :pass_through}
-        end)
-      end
-
-      defp has_header?(line) do
-        fields = String.split(line, ",") |> Enum.map(&String.trim/1)
-
-        Enum.any?(fields, fn field ->
-          case Float.parse(field) do
-            {_float, ""} -> false
-            :error -> true
-            _ -> false
-          end
-        end)
-      end
-
-      defp generate_header(line) do
-        field_count = line |> String.split(",") |> length()
-
-        case field_count do
-          4 -> "open,high,low,close"
-          5 -> "open,high,low,close,volume"
-          6 -> "timestamp,open,high,low,close,volume"
-          _ -> "open,high,low,close"
-        end
       end
 
       defp normalize_row(row) do

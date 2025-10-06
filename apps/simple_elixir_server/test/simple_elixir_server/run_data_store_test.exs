@@ -102,7 +102,7 @@ defmodule SimpleElixirServer.RunDataStoreTest do
     test "returns a stream for existing CSV file" do
       RunDataStore.write(@test_run_id, @sample_csv_data)
       assert {:ok, stream} = RunDataStore.stream(@test_run_id)
-      assert %File.Stream{} = stream
+      assert is_function(stream.reducers)
     end
 
     test "stream can be enumerated" do
@@ -112,6 +112,62 @@ defmodule SimpleElixirServer.RunDataStoreTest do
       lines = Enum.to_list(stream)
       assert length(lines) == 3
       assert hd(lines) =~ "date,open,high,low,close,volume"
+    end
+
+    test "auto-generates headers for 4-column CSV (OHLC)" do
+      csv_without_headers = """
+      100.0,110.0,95.0,105.0
+      105.0,115.0,100.0,102.0
+      """
+
+      RunDataStore.write(@test_run_id, csv_without_headers)
+      {:ok, stream} = RunDataStore.stream(@test_run_id)
+
+      lines = Enum.to_list(stream)
+      assert length(lines) == 3
+      assert hd(lines) =~ "open,high,low,close"
+    end
+
+    test "auto-generates headers for 5-column CSV (OHLCV)" do
+      csv_without_headers = """
+      100.0,110.0,95.0,105.0,1000
+      105.0,115.0,100.0,102.0,1200
+      """
+
+      RunDataStore.write(@test_run_id, csv_without_headers)
+      {:ok, stream} = RunDataStore.stream(@test_run_id)
+
+      lines = Enum.to_list(stream)
+      assert length(lines) == 3
+      assert hd(lines) =~ "open,high,low,close,volume"
+    end
+
+    test "auto-generates headers for 6-column CSV (timestamp + OHLCV)" do
+      csv_without_headers = """
+      2025-01-01,100.0,110.0,95.0,105.0,1000
+      2025-01-02,105.0,115.0,100.0,102.0,1200
+      """
+
+      RunDataStore.write(@test_run_id, csv_without_headers)
+      {:ok, stream} = RunDataStore.stream(@test_run_id)
+
+      lines = Enum.to_list(stream)
+      assert length(lines) == 3
+      assert hd(lines) =~ "timestamp,open,high,low,close,volume"
+    end
+
+    test "preserves existing headers" do
+      csv_with_headers = """
+      custom_date,o,h,l,c
+      2025-01-01,100.0,110.0,95.0,105.0
+      """
+
+      RunDataStore.write(@test_run_id, csv_with_headers)
+      {:ok, stream} = RunDataStore.stream(@test_run_id)
+
+      lines = Enum.to_list(stream)
+      assert length(lines) == 2
+      assert hd(lines) =~ "custom_date,o,h,l,c"
     end
 
     test "returns error for non-existent file" do
