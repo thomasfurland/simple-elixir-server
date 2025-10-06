@@ -42,6 +42,6 @@ config :phoenix_live_view,
 # Configure Oban for testing
 config :simple_job_processor, Oban,
   repo: SimpleElixirServer.Repo,
-  queues: [event_analysis: 10, data_processing: 10],
+  queues: [event_analysis: 1, data_processing: 1],
   plugins: false,
-  testing: :inline
+  testing: :manual
