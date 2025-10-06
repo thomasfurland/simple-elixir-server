@@ -18,7 +18,7 @@ defmodule SimpleElixirServerWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/runs"
 
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
@@ -82,7 +82,7 @@ defmodule SimpleElixirServerWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/runs"
 
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
@@ -103,7 +103,7 @@ defmodule SimpleElixirServerWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/runs"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "User confirmed successfully."
 
       assert Accounts.get_user!(user.id).confirmed_at
