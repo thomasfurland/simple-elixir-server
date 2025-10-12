@@ -114,7 +114,14 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
 
   @impl true
   def handle_params(params, _uri, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    if socket.assigns.current_scope && socket.assigns.current_scope.user do
+      {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+    else
+      {:noreply,
+       socket
+       |> put_flash(:error, "You must log in to access this page.")
+       |> redirect(to: ~p"/users/log-in")}
+    end
   end
 
   defp apply_action(socket, :index, _params) do
