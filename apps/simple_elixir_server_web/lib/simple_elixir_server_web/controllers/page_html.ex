@@ -6,5 +6,7 @@ defmodule SimpleElixirServerWeb.PageHTML do
   """
   use SimpleElixirServerWeb, :html
 
+  alias SimpleElixirServerWeb.Components.Nav
+
   embed_templates "page_html/*"
 end

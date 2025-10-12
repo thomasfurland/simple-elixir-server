@@ -5,6 +5,8 @@ defmodule SimpleElixirServerWeb.Layouts do
   """
   use SimpleElixirServerWeb, :html
 
+  alias SimpleElixirServerWeb.Components.Nav
+
   # Embed all files in layouts/* within this module.
   # The default root.html.heex file contains the HTML
   # skeleton of your application, namely HTML headers
@@ -45,7 +47,7 @@ defmodule SimpleElixirServerWeb.Layouts do
             </label>
           </div>
           <div class="flex-none">
-            <.theme_toggle />
+            <Nav.theme_toggle />
           </div>
         </header>
 
@@ -58,49 +60,7 @@ defmodule SimpleElixirServerWeb.Layouts do
         <.flash_group flash={@flash} />
       </div>
 
-      <div class="drawer-side">
-        <label for="drawer-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
-        <aside class="bg-base-200 min-h-full w-64 p-4">
-          <div class="mb-8">
-            <a href="/" class="flex items-center gap-2">
-              <img src={~p"/images/logo.svg"} width="36" />
-              <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-            </a>
-          </div>
-
-          <ul class="menu space-y-2">
-            <li>
-              <a href={~p"/"}>
-                <.icon name="hero-home" class="size-5" /> Home
-              </a>
-            </li>
-            <li>
-              <a href={~p"/runs"}>
-                <.icon name="hero-play" class="size-5" /> Runs
-              </a>
-            </li>
-            <li>
-              <a href="https://phoenixframework.org/" target="_blank">
-                <.icon name="hero-globe-alt" class="size-5" /> Website
-              </a>
-            </li>
-            <li>
-              <a href="https://github.com/phoenixframework/phoenix" target="_blank">
-                <.icon name="hero-code-bracket" class="size-5" /> GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://hexdocs.pm/phoenix/overview.html" target="_blank">
-                <.icon name="hero-book-open" class="size-5" /> Get Started
-              </a>
-            </li>
-          </ul>
-
-          <div class="absolute bottom-4 left-4 hidden lg:block">
-            <.theme_toggle />
-          </div>
-        </aside>
-      </div>
+      <Nav.drawer current_scope={@current_scope} />
     </div>
     """
   end
@@ -144,43 +104,6 @@ defmodule SimpleElixirServerWeb.Layouts do
         {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
-    </div>
-    """
-  end
-
-  @doc """
-  Provides dark vs light theme toggle based on themes defined in app.css.
-
-  See <head> in root.html.heex which applies the theme before page load.
-  """
-  def theme_toggle(assigns) do
-    ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="system"
-      >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="light"
-      >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        class="flex p-2 cursor-pointer w-1/3"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="dark"
-      >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
     </div>
     """
   end
