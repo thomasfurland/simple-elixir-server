@@ -37,31 +37,13 @@ defmodule SimpleElixirServerWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <div class="drawer lg:drawer-open">
-      <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
-      <div class="drawer-content flex flex-col">
-        <header class="navbar px-4 sm:px-6 lg:px-8 lg:hidden">
-          <div class="flex-1">
-            <label for="drawer-toggle" class="btn btn-ghost btn-circle">
-              <.icon name="hero-bars-3" class="size-6" />
-            </label>
-          </div>
-          <div class="flex-none">
-            <Nav.theme_toggle />
-          </div>
-        </header>
-
-        <main class="px-4 py-8 sm:px-6 lg:px-8">
-          <div class="mx-auto max-w-5xl space-y-4">
-            {render_slot(@inner_block)}
-          </div>
-        </main>
-
-        <.flash_group flash={@flash} />
+    <main class="px-4 py-8 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-5xl space-y-4">
+        {render_slot(@inner_block)}
       </div>
+    </main>
 
-      <Nav.drawer current_scope={@current_scope} />
-    </div>
+    <.flash_group flash={@flash} />
     """
   end
 

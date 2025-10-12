@@ -14,87 +14,43 @@ Below are separate objectives for each agent to work on. Agents will only work o
 
 ## Agent: amp-one
 **Scope**
-- Move RunModal from components directory to live/runs_live directory as form_component.ex
-- Refactor to use proper LiveView form component pattern with handle_event callbacks
-- Keep all existing functionality (file uploads, validation, job enqueueing) intact
-- Component should work with live_patch routing and action-based mounting
+- Fix duplicate navigation rendering issue across layouts
+- Extract navigation into dedicated component file
+- Ensure app.html.heex contains nav, root.html.heex remains minimal
+- Improve testability by isolating nav component
 
 **Tasks**
-- Create `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/form_component.ex`
-- Move all logic from run_modal.ex to form_component.ex
-- Update component to handle :new action properly
-- Ensure form state persists during phx-change events
-- Delete old run_modal.ex file after migration
+- Create dedicated nav component file (e.g., `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/components/nav.ex`)
+- Extract all navigation markup from app.html.heex into the new nav component
+- Update app.html.heex to call the nav component
+- Ensure root.html.heex contains only essential scaffolding (no nav elements)
+- Verify nav only renders once during navigation
+- Write tests to verify nav component renders correctly and appears only once
 
 **Expected Outputs**
-- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/form_component.ex`
+- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/components/nav.ex`
+- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/components/layouts/app.html.heex`
+- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/components/layouts/root.html.heex`
+- `/apps/simple_elixir_server_web/test/simple_elixir_server_web/components/nav_test.exs`
 
 ---
 
 ## Agent: amp-two
 **Scope**
-- Create RunsLive.Show as a proper LiveView to display individual run details
-- Replace the dead controller pattern currently in router
-- Display run information including title, timestamps, outcomes, and job status
-- Should follow same pattern as other LiveViews in the codebase
+- Ensure authentication is enforced for all LiveView navigation including live_patch
+- Prevent logged out users from accessing protected content via handle_params
+- Add proper auth checks that aren't bypassed by LiveView navigation
 
 **Tasks**
-- Create show.ex LiveView in runs_live directory
-- Implement mount function to load run by ID
-- Render run details with proper formatting
-- Handle not found cases gracefully
-- Follow existing UI/styling patterns from index
+- Review current on_mount hooks in router live_sessions
+- Implement handle_params auth verification for protected LiveViews
+- Ensure live_patch routes respect authentication requirements
+- Add redirect to login for unauthorized access attempts
+- Write tests verifying logged out users cannot access protected routes via live_patch
+- Test that navigating via live_patch enforces auth properly
 
 **Expected Outputs**
-- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/show.ex`
-
----
-
-## Agent: amp-three
-**Scope**
-- Update router to use proper LiveView routing with actions
-- Refactor RunsLive.Index to handle :index and :new actions via live_patch
-- Remove phx-click modal toggle pattern in favor of URL-based routing
-- Update links to use live_patch instead of regular links
-
-**Note from amp-one:**
-- FormComponent reference in index.ex has already been updated to `SimpleElixirServerWeb.RunsLive.FormComponent`
-- A minimal `handle_params/3` has been added to index.ex that closes the modal - you need to expand this to properly handle :index and :new actions based on URL params
-- The modal currently opens via phx-click="open_create_modal" - you need to replace this with live_patch routing
-
-**Note from amp-two:**
-- RunsLive.Show has been created at `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/show.ex`
-- It properly handles mount with run ID, displays run details, and redirects with flash on not found
-- The old controller route `get "/runs/:id", RunsController, :show` at line 60 in router.ex MUST be replaced with a LiveView route inside the live_session block
-- You need to add: `live "/runs/:id", RunsLive.Show, :show` inside the :require_authenticated_user live_session
-
-**Tasks**
-- Update router.ex to add live route for /runs/:id with :show action
-- Remove dead controller route for runs show
-- Expand handle_params/3 in index.ex to handle :new action (currently only closes modal)
-- Replace phx-click="open_create_modal" with live_patch to ~p"/runs/new"
-- Replace regular link to run details with live_patch
-- Remove the old handle_event("open_create_modal") and handle_event("close_modal") handlers after live_patch is working
-
-**Expected Outputs**
-- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/router.ex`
-- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/index.ex`
-
----
-
-## Agent: amp-four
-**Scope**
-- Implement proper validation logic in form_component validate event
-- Validate CSV file structure during phx-change before form submission
-- Add real-time feedback for form fields (job_runner required, title optional)
-- Use changesets properly for form validation state
-
-**Tasks**
-- Add proper validation logic to handle_event("validate", ...)
-- Validate job_runner is selected before enabling submit
-- Add CSV structure validation on file upload change
-- Display validation errors in form UI
-- Create changeset for run params with proper validation rules
-
-**Expected Outputs**
-- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/form_component.ex`
+- Router with proper live_session on_mount hooks
+- LiveViews with handle_params auth checks where needed
+- Documentation of auth flow for live_patch navigation
+- `/apps/simple_elixir_server_web/test/simple_elixir_server_web/live/auth_navigation_test.exs`
