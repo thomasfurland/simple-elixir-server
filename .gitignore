@@ -28,3 +28,6 @@ erl_crash.dump
 
 # Ignore macOS specific files
 .DS_Store
+
+# Ignore run data files
+/apps/*/priv/run_data/
