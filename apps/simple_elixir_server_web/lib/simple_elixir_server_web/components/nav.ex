@@ -19,14 +19,17 @@ defmodule SimpleElixirServerWeb.Components.Nav do
 
   def drawer(assigns) do
     ~H"""
-    <div class="drawer-side">
+    <div class="drawer-side z-50">
       <label for="drawer-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
       <aside class="bg-base-200 min-h-full w-64 p-4">
-        <div class="mb-8">
+        <div class="mb-8 flex items-center justify-between">
           <a href="/" class="flex items-center gap-2">
             <img src={~p"/images/logo.svg"} width="36" />
             <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
           </a>
+          <label for="drawer-toggle" class="btn btn-ghost btn-sm btn-circle">
+            <.icon name="hero-x-mark" class="size-5" />
+          </label>
         </div>
 
         <ul class="menu space-y-2">
