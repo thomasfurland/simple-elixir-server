@@ -101,4 +101,16 @@ defmodule SimpleElixirServerWeb.RunsLive.Show do
          |> redirect(to: ~p"/runs")}
     end
   end
+
+  @impl true
+  def handle_params(_params, _uri, socket) do
+    if socket.assigns.current_scope && socket.assigns.current_scope.user do
+      {:noreply, socket}
+    else
+      {:noreply,
+       socket
+       |> put_flash(:error, "You must log in to access this page.")
+       |> redirect(to: ~p"/users/log-in")}
+    end
+  end
 end
