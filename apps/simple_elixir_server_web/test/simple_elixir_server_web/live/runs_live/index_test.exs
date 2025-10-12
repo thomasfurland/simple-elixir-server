@@ -60,16 +60,15 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
 
       refute has_element?(lv, "#run-modal")
 
-      lv |> element("button", "New Run") |> render_click()
+      lv |> element("a", "New Run") |> render_click()
 
       assert has_element?(lv, "#run-modal")
       assert has_element?(lv, "h3", "Create New Run")
     end
 
     test "closes modal on cancel", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/runs")
+      {:ok, lv, _html} = live(conn, ~p"/runs/new")
 
-      lv |> element("button", "New Run") |> render_click()
       assert has_element?(lv, "#run-modal")
 
       lv |> element("button", "Cancel") |> render_click()
@@ -77,9 +76,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
     end
 
     test "creates run with title", %{conn: conn, user: _user} do
-      {:ok, lv, _html} = live(conn, ~p"/runs")
-
-      lv |> element("button", "New Run") |> render_click()
+      {:ok, lv, _html} = live(conn, ~p"/runs/new")
 
       csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
 
@@ -106,9 +103,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
     end
 
     test "creates run without title", %{conn: conn, user: _user} do
-      {:ok, lv, _html} = live(conn, ~p"/runs")
-
-      lv |> element("button", "New Run") |> render_click()
+      {:ok, lv, _html} = live(conn, ~p"/runs/new")
 
       csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
 
@@ -134,9 +129,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
     end
 
     test "creates run with generated outcomes", %{conn: conn, user: user} do
-      {:ok, lv, _html} = live(conn, ~p"/runs")
-
-      lv |> element("button", "New Run") |> render_click()
+      {:ok, lv, _html} = live(conn, ~p"/runs/new")
 
       csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
 
@@ -164,9 +157,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
     end
 
     test "modal shows job runner dropdown", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/runs")
-
-      lv |> element("button", "New Run") |> render_click()
+      {:ok, lv, _html} = live(conn, ~p"/runs/new")
 
       assert has_element?(lv, "select[name='job_runner']")
       assert has_element?(lv, "option", "Data Processing")
@@ -174,9 +165,7 @@ defmodule SimpleElixirServerWeb.RunsLive.IndexTest do
     end
 
     test "enqueues oban job when job runner is selected", %{conn: conn, user: _user} do
-      {:ok, lv, _html} = live(conn, ~p"/runs")
-
-      lv |> element("button", "New Run") |> render_click()
+      {:ok, lv, _html} = live(conn, ~p"/runs/new")
 
       csv_content = "open,high,low,close\n100,110,95,105\n101,111,96,106"
 

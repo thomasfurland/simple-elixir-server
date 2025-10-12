@@ -4,7 +4,7 @@
 - Things we have: Oban Pipeline, Runs CRUD, RunsDataStore, Entire Runs UI
 - Each agent will be given a git worktree to do work in on their own git branches. Agents make changes exclusively within their starting directories.
 - Work will be considered complete when the output files and only the output and target files have code representitive of the tasks given to them.
-- Dont run tests locally. This will happen after we push to github where CI takes over.
+- Run tests locally, but stop execution after explaining what your next step will be. You need my approval to continue.
 - commit changes with a descriptive and short message and push changes up to remote origin.
 - If you are unsure ask questions before writing code.
 
@@ -14,35 +14,87 @@ Below are separate objectives for each agent to work on. Agents will only work o
 
 ## Agent: amp-one
 **Scope**
-- final ticket for this milestone. We still need to implement the candlestick data import in the modal. So the workers have data to process. Candlestick files should be streamed in the usual live view way: 
-
-consume_uploaded_entries(socket, :candlestick_data, fn %{path: temp_path}, _entry ->
-  {:ok, csv} = File.read(temp_path)
-  RunDataStore.write(run_id, csv)
-  {:ok, run_id}
-end)
-
-We want to name the file the run id and we want to use the simple_elixir_server.run_data_store to do so.
-We want to ensure files are saved with the expected 4,5,6 format so make sure we test for this and provide feedback on the form incase they dont comply. refer to and write in run data store module.
-
-Do we need tests? or is it easy to test? if not we can skip
+- Move RunModal from components directory to live/runs_live directory as form_component.ex
+- Refactor to use proper LiveView form component pattern with handle_event callbacks
+- Keep all existing functionality (file uploads, validation, job enqueueing) intact
+- Component should work with live_patch routing and action-based mounting
 
 **Tasks**
-- update modal with file dropin labeled candlestick data.
-- ensure uploaded file is csv with correct 4, 5, 6 structure. provide feedback if not
-- upload csv into the correct directory by using run data store functions.
-- add code where necessary
-- create tests if it makes sense
+- Create `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/form_component.ex`
+- Move all logic from run_modal.ex to form_component.ex
+- Update component to handle :new action properly
+- Ensure form state persists during phx-change events
+- Delete old run_modal.ex file after migration
 
 **Expected Outputs**
-- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/components/run_modal.ex`
-- `/apps/simple_elixir_server/lib/simple_elixir_server/run_data_store.ex`
-- any other files we may need
+- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/form_component.ex`
 
 ---
 
 ## Agent: amp-two
 **Scope**
+- Create RunsLive.Show as a proper LiveView to display individual run details
+- Replace the dead controller pattern currently in router
+- Display run information including title, timestamps, outcomes, and job status
+- Should follow same pattern as other LiveViews in the codebase
+
 **Tasks**
+- Create show.ex LiveView in runs_live directory
+- Implement mount function to load run by ID
+- Render run details with proper formatting
+- Handle not found cases gracefully
+- Follow existing UI/styling patterns from index
 
 **Expected Outputs**
+- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/show.ex`
+
+---
+
+## Agent: amp-three
+**Scope**
+- Update router to use proper LiveView routing with actions
+- Refactor RunsLive.Index to handle :index and :new actions via live_patch
+- Remove phx-click modal toggle pattern in favor of URL-based routing
+- Update links to use live_patch instead of regular links
+
+**Note from amp-one:**
+- FormComponent reference in index.ex has already been updated to `SimpleElixirServerWeb.RunsLive.FormComponent`
+- A minimal `handle_params/3` has been added to index.ex that closes the modal - you need to expand this to properly handle :index and :new actions based on URL params
+- The modal currently opens via phx-click="open_create_modal" - you need to replace this with live_patch routing
+
+**Note from amp-two:**
+- RunsLive.Show has been created at `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/show.ex`
+- It properly handles mount with run ID, displays run details, and redirects with flash on not found
+- The old controller route `get "/runs/:id", RunsController, :show` at line 60 in router.ex MUST be replaced with a LiveView route inside the live_session block
+- You need to add: `live "/runs/:id", RunsLive.Show, :show` inside the :require_authenticated_user live_session
+
+**Tasks**
+- Update router.ex to add live route for /runs/:id with :show action
+- Remove dead controller route for runs show
+- Expand handle_params/3 in index.ex to handle :new action (currently only closes modal)
+- Replace phx-click="open_create_modal" with live_patch to ~p"/runs/new"
+- Replace regular link to run details with live_patch
+- Remove the old handle_event("open_create_modal") and handle_event("close_modal") handlers after live_patch is working
+
+**Expected Outputs**
+- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/router.ex`
+- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/index.ex`
+
+---
+
+## Agent: amp-four
+**Scope**
+- Implement proper validation logic in form_component validate event
+- Validate CSV file structure during phx-change before form submission
+- Add real-time feedback for form fields (job_runner required, title optional)
+- Use changesets properly for form validation state
+
+**Tasks**
+- Add proper validation logic to handle_event("validate", ...)
+- Validate job_runner is selected before enabling submit
+- Add CSV structure validation on file upload change
+- Display validation errors in form UI
+- Create changeset for run params with proper validation rules
+
+**Expected Outputs**
+- `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/form_component.ex`

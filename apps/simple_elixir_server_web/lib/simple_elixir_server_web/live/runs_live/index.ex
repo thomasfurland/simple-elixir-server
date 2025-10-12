@@ -12,7 +12,7 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
       <div class="mx-auto max-w-6xl">
         <div class="flex justify-between items-center mb-8">
           <h1 class="text-3xl font-semibold">Runs</h1>
-          <button class="btn btn-primary" phx-click="open_create_modal">
+          <.link patch={~p"/runs/new"} class="btn btn-primary">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-5 w-5 mr-2"
@@ -26,7 +26,7 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
               />
             </svg>
             New Run
-          </button>
+          </.link>
         </div>
 
         <%= if Enum.empty?(@runs) do %>
@@ -76,9 +76,9 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
                       <% end %>
                     </td>
                     <td>
-                      <a href={~p"/runs/#{run.id}"} class="btn btn-sm btn-ghost">
+                      <.link navigate={~p"/runs/#{run.id}"} class="btn btn-sm btn-ghost">
                         View
-                      </a>
+                      </.link>
                     </td>
                   </tr>
                 <% end %>
@@ -91,7 +91,7 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
 
     <%= if @show_modal do %>
       <.live_component
-        module={SimpleElixirServerWeb.RunModal}
+        module={SimpleElixirServerWeb.RunsLive.FormComponent}
         id="run-modal"
         current_scope={@current_scope}
       />
@@ -113,12 +113,16 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
   end
 
   @impl true
-  def handle_event("open_create_modal", _params, socket) do
-    {:noreply, assign(socket, :show_modal, true)}
+  def handle_params(params, _uri, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
   end
 
-  def handle_event("close_modal", _params, socket) do
-    {:noreply, assign(socket, :show_modal, false)}
+  defp apply_action(socket, :index, _params) do
+    assign(socket, :show_modal, false)
+  end
+
+  defp apply_action(socket, :new, _params) do
+    assign(socket, :show_modal, true)
   end
 
   @impl true
