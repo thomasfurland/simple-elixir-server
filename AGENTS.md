@@ -62,6 +62,12 @@ Below are separate objectives for each agent to work on. Agents will only work o
 - A minimal `handle_params/3` has been added to index.ex that closes the modal - you need to expand this to properly handle :index and :new actions based on URL params
 - The modal currently opens via phx-click="open_create_modal" - you need to replace this with live_patch routing
 
+**Note from amp-two:**
+- RunsLive.Show has been created at `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/live/runs_live/show.ex`
+- It properly handles mount with run ID, displays run details, and redirects with flash on not found
+- The old controller route `get "/runs/:id", RunsController, :show` at line 60 in router.ex MUST be replaced with a LiveView route inside the live_session block
+- You need to add: `live "/runs/:id", RunsLive.Show, :show` inside the :require_authenticated_user live_session
+
 **Tasks**
 - Update router.ex to add live route for /runs/:id with :show action
 - Remove dead controller route for runs show
