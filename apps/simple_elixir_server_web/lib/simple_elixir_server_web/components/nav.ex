@@ -56,9 +56,9 @@ defmodule SimpleElixirServerWeb.Components.Nav do
               </a>
             </li>
             <li>
-              <a href={~p"/users/log-out"} data-method="delete">
+              <.link href={~p"/users/log-out"} method="delete">
                 <.icon name="hero-arrow-right-on-rectangle" class="size-5" /> Log out
-              </a>
+              </.link>
             </li>
           <% else %>
             <li>
