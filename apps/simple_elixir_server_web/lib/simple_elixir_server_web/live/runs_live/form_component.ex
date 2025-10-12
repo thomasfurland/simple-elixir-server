@@ -2,25 +2,9 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
   use SimpleElixirServerWeb, :live_component
 
   alias SimpleElixirServer.Runs
+  alias SimpleElixirServer.Runs.RunForm
   alias SimpleElixirServer.RunDataStore
   alias SimpleJobProcessor.WorkerLookup
-
-  defmodule RunForm do
-    use Ecto.Schema
-    import Ecto.Changeset
-
-    @primary_key false
-    embedded_schema do
-      field(:title, :string)
-      field(:job_runner, :string)
-    end
-
-    def changeset(form, attrs \\ %{}) do
-      form
-      |> cast(attrs, [:title, :job_runner])
-      |> validate_required([:job_runner], message: "Please select a job runner")
-    end
-  end
 
   @impl true
   def render(assigns) do
@@ -45,9 +29,16 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
 
           <div class="form-control mb-4">
             <label class="label">
-              <span class="label-text">Job Runner</span>
+              <span class="label-text">Job Runner <span class="text-error">*</span></span>
             </label>
-            <select name="job_runner" class="select select-bordered w-full" required>
+            <select
+              name="job_runner"
+              class={[
+                "select select-bordered w-full",
+                @form[:job_runner].errors != [] && "select-error"
+              ]}
+              required
+            >
               <option value="">Select a runner</option>
               <%= for queue <- @queues do %>
                 <option value={queue} selected={@form[:job_runner].value == queue}>
@@ -55,11 +46,17 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
                 </option>
               <% end %>
             </select>
+            <%= for msg <- Enum.map(@form[:job_runner].errors, &translate_error(&1)) do %>
+              <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+                <.icon name="hero-exclamation-circle" class="size-5" />
+                {msg}
+              </p>
+            <% end %>
           </div>
 
           <div class="form-control mb-4">
             <label class="label">
-              <span class="label-text">Candlestick Data (required)</span>
+              <span class="label-text">Candlestick Data <span class="text-error">*</span></span>
             </label>
             <.live_file_input
               upload={@uploads.candlestick_data}
@@ -71,6 +68,20 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
                 CSV file with 4, 5, or 6 columns (OHLC, OHLCV, or timestamp+OHLCV)
               </span>
             </label>
+            <%= for msg <- Enum.map(@form[:candlestick_data].errors, &translate_error(&1)) do %>
+              <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+                <.icon name="hero-exclamation-circle" class="size-5" />
+                {msg}
+              </p>
+            <% end %>
+            <%= for entry <- @uploads.candlestick_data.entries do %>
+              <%= for err <- upload_errors(@uploads.candlestick_data, entry) do %>
+                <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+                  <.icon name="hero-exclamation-circle" class="size-5" />
+                  {error_to_string(err)}
+                </p>
+              <% end %>
+            <% end %>
           </div>
 
           <div class="modal-action">
@@ -110,14 +121,28 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
     |> Enum.join(" ")
   end
 
+  defp error_to_string(:too_large), do: "File is too large (max 10MB)"
+  defp error_to_string(:not_accepted), do: "Only CSV files are accepted"
+  defp error_to_string(:too_many_files), do: "Only one file can be uploaded"
+  defp error_to_string(err), do: "Upload error: #{inspect(err)}"
+
   @impl true
   def handle_event("validate", params, socket) do
+    has_file = length(socket.assigns.uploads.candlestick_data.entries) > 0
+
+    params_with_file = Map.put(params, "has_file", has_file)
+
     changeset =
       %RunForm{}
-      |> RunForm.changeset(params)
+      |> RunForm.changeset(params_with_file)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, :form, to_form(changeset))}
+    socket =
+      socket
+      |> assign(:form, to_form(changeset))
+      |> maybe_validate_csv_structure()
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -206,6 +231,48 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
 
       {:error, error_message} ->
         {:error, error_message}
+    end
+  end
+
+  defp maybe_validate_csv_structure(socket) do
+    case socket.assigns.uploads.candlestick_data.entries do
+      [] ->
+        socket
+
+      [entry | _] ->
+        validate_csv_entry(socket, entry)
+    end
+  end
+
+  defp validate_csv_entry(socket, entry) do
+    if entry.done? do
+      case consume_uploaded_entry(socket, entry, &validate_csv_content/2) do
+        {:ok, :valid} ->
+          socket
+
+        {:ok, {:invalid, error_msg}} ->
+          socket
+          |> cancel_upload(:candlestick_data, entry.ref)
+          |> put_flash(:error, error_msg)
+
+        {:postponed, _} ->
+          socket
+      end
+    else
+      socket
+    end
+  end
+
+  defp validate_csv_content(%{path: temp_path}, _entry) do
+    case File.read(temp_path) do
+      {:ok, csv_content} ->
+        case RunDataStore.validate_csv(csv_content) do
+          :ok -> {:ok, :valid}
+          {:error, error_msg} -> {:ok, {:invalid, error_msg}}
+        end
+
+      {:error, _reason} ->
+        {:postpone, :file_read_error}
     end
   end
 end
