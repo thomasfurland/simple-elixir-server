@@ -65,7 +65,7 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
             />
             <label class="label">
               <span class="label-text-alt">
-                CSV file with 4, 5, or 6 columns (OHLC, OHLCV, or timestamp+OHLCV)
+                CSV file with OHLC, OHLCV, or timestamp OHLCV as columns
               </span>
             </label>
             <%= for msg <- Enum.map(@form[:candlestick_data].errors, &translate_error(&1)) do %>
