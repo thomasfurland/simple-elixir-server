@@ -57,13 +57,18 @@ Below are separate objectives for each agent to work on. Agents will only work o
 - Remove phx-click modal toggle pattern in favor of URL-based routing
 - Update links to use live_patch instead of regular links
 
+**Note from amp-one:**
+- FormComponent reference in index.ex has already been updated to `SimpleElixirServerWeb.RunsLive.FormComponent`
+- A minimal `handle_params/3` has been added to index.ex that closes the modal - you need to expand this to properly handle :index and :new actions based on URL params
+- The modal currently opens via phx-click="open_create_modal" - you need to replace this with live_patch routing
+
 **Tasks**
 - Update router.ex to add live route for /runs/:id with :show action
 - Remove dead controller route for runs show
-- Update index.ex to handle :new action in handle_params
+- Expand handle_params/3 in index.ex to handle :new action (currently only closes modal)
 - Replace phx-click="open_create_modal" with live_patch to ~p"/runs/new"
 - Replace regular link to run details with live_patch
-- Update form_component reference in index to use new location
+- Remove the old handle_event("open_create_modal") and handle_event("close_modal") handlers after live_patch is working
 
 **Expected Outputs**
 - `/apps/simple_elixir_server_web/lib/simple_elixir_server_web/router.ex`
