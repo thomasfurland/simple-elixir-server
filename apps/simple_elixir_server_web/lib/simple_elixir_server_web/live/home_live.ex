@@ -6,7 +6,7 @@ defmodule SimpleElixirServerWeb.HomeLive do
     ~H"""
     <div class="min-h-screen flex items-center justify-center px-4">
       <div class="text-center max-w-2xl">
-        <h1 class="text-6xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <h1 class="text-6xl font-bold mb-4 pb-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           Event Analysis Engine
         </h1>
         <p class="text-xl text-base-content/70 mb-12">
