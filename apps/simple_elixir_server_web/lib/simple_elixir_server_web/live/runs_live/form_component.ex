@@ -1,9 +1,26 @@
-defmodule SimpleElixirServerWeb.RunModal do
+defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
   use SimpleElixirServerWeb, :live_component
 
   alias SimpleElixirServer.Runs
   alias SimpleElixirServer.RunDataStore
   alias SimpleJobProcessor.WorkerLookup
+
+  defmodule RunForm do
+    use Ecto.Schema
+    import Ecto.Changeset
+
+    @primary_key false
+    embedded_schema do
+      field :title, :string
+      field :job_runner, :string
+    end
+
+    def changeset(form, attrs \\ %{}) do
+      form
+      |> cast(attrs, [:title, :job_runner])
+      |> validate_required([:job_runner], message: "Please select a job runner")
+    end
+  end
 
   @impl true
   def render(assigns) do
@@ -57,7 +74,7 @@ defmodule SimpleElixirServerWeb.RunModal do
           </div>
 
           <div class="modal-action">
-            <button type="button" class="btn" phx-click="close_modal">Cancel</button>
+            <button type="button" class="btn" phx-click="close" phx-target={@myself}>Cancel</button>
             <button type="submit" class="btn btn-primary" phx-disable-with="Creating...">
               Create Run
             </button>
@@ -71,11 +88,12 @@ defmodule SimpleElixirServerWeb.RunModal do
   @impl true
   def update(assigns, socket) do
     queues = WorkerLookup.list_queues()
+    changeset = RunForm.changeset(%RunForm{}, %{})
 
     socket =
       socket
       |> assign(assigns)
-      |> assign(form: to_form(%{}), queues: queues)
+      |> assign(form: to_form(changeset), queues: queues)
       |> allow_upload(:candlestick_data,
         accept: ~w(.csv),
         max_entries: 1,
@@ -94,7 +112,17 @@ defmodule SimpleElixirServerWeb.RunModal do
 
   @impl true
   def handle_event("validate", params, socket) do
-    {:noreply, assign(socket, :form, to_form(params))}
+    changeset =
+      %RunForm{}
+      |> RunForm.changeset(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :form, to_form(changeset))}
+  end
+
+  @impl true
+  def handle_event("close", _params, socket) do
+    {:noreply, push_patch(socket, to: ~p"/runs")}
   end
 
   @impl true
@@ -148,10 +176,9 @@ defmodule SimpleElixirServerWeb.RunModal do
             case enqueue_job(job_runner, run.id) do
               :ok ->
                 send(self(), {:run_created, run})
-                {:noreply, socket}
+                {:noreply, push_patch(socket, to: ~p"/runs")}
 
               {:error, error_message} ->
-                send(self(), {:put_flash, :error, error_message})
                 {:noreply, put_flash(socket, :error, error_message)}
             end
 
