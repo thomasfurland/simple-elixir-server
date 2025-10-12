@@ -137,12 +137,7 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
       |> RunForm.changeset(params_with_file)
       |> Map.put(:action, :validate)
 
-    socket =
-      socket
-      |> assign(:form, to_form(changeset))
-      |> maybe_validate_csv_structure()
-
-    {:noreply, socket}
+    {:noreply, assign(socket, :form, to_form(changeset))}
   end
 
   @impl true
@@ -167,14 +162,32 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
             create_run_with_data(params, socket, csv_content)
 
           {:error, validation_error} ->
-            {:noreply, put_flash(socket, :error, validation_error)}
+            changeset =
+              %RunForm{}
+              |> RunForm.changeset(params)
+              |> Ecto.Changeset.add_error(:candlestick_data, validation_error)
+              |> Map.put(:action, :validate)
+
+            {:noreply, assign(socket, :form, to_form(changeset))}
         end
 
       [] ->
-        {:noreply, put_flash(socket, :error, "Candlestick data file is required")}
+        changeset =
+          %RunForm{}
+          |> RunForm.changeset(params)
+          |> Ecto.Changeset.add_error(:candlestick_data, "Candlestick data file is required")
+          |> Map.put(:action, :validate)
+
+        {:noreply, assign(socket, :form, to_form(changeset))}
 
       _ ->
-        {:noreply, put_flash(socket, :error, "Failed to read uploaded file")}
+        changeset =
+          %RunForm{}
+          |> RunForm.changeset(params)
+          |> Ecto.Changeset.add_error(:candlestick_data, "Failed to read uploaded file")
+          |> Map.put(:action, :validate)
+
+        {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 
@@ -231,48 +244,6 @@ defmodule SimpleElixirServerWeb.RunsLive.FormComponent do
 
       {:error, error_message} ->
         {:error, error_message}
-    end
-  end
-
-  defp maybe_validate_csv_structure(socket) do
-    case socket.assigns.uploads.candlestick_data.entries do
-      [] ->
-        socket
-
-      [entry | _] ->
-        validate_csv_entry(socket, entry)
-    end
-  end
-
-  defp validate_csv_entry(socket, entry) do
-    if entry.done? do
-      case consume_uploaded_entry(socket, entry, &validate_csv_content/2) do
-        {:ok, :valid} ->
-          socket
-
-        {:ok, {:invalid, error_msg}} ->
-          socket
-          |> cancel_upload(:candlestick_data, entry.ref)
-          |> put_flash(:error, error_msg)
-
-        {:postponed, _} ->
-          socket
-      end
-    else
-      socket
-    end
-  end
-
-  defp validate_csv_content(%{path: temp_path}, _entry) do
-    case File.read(temp_path) do
-      {:ok, csv_content} ->
-        case RunDataStore.validate_csv(csv_content) do
-          :ok -> {:ok, :valid}
-          {:error, error_msg} -> {:ok, {:invalid, error_msg}}
-        end
-
-      {:error, _reason} ->
-        {:postpone, :file_read_error}
     end
   end
 end
