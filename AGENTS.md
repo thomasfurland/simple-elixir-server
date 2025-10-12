@@ -4,7 +4,7 @@
 - Things we have: Oban Pipeline, Runs CRUD, RunsDataStore, Entire Runs UI
 - Each agent will be given a git worktree to do work in on their own git branches. Agents make changes exclusively within their starting directories.
 - Work will be considered complete when the output files and only the output and target files have code representitive of the tasks given to them.
-- Dont run tests locally. This will happen after we push to github where CI takes over.
+- Run tests locally, but stop execution after explaining what your next step will be. You need my approval to continue.
 - commit changes with a descriptive and short message and push changes up to remote origin.
 - If you are unsure ask questions before writing code.
 

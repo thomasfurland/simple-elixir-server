@@ -91,7 +91,7 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
 
     <%= if @show_modal do %>
       <.live_component
-        module={SimpleElixirServerWeb.RunModal}
+        module={SimpleElixirServerWeb.RunsLive.FormComponent}
         id="run-modal"
         current_scope={@current_scope}
       />
@@ -110,6 +110,11 @@ defmodule SimpleElixirServerWeb.RunsLive.Index do
       |> assign(:show_modal, false)
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_params(_params, _uri, socket) do
+    {:noreply, assign(socket, :show_modal, false)}
   end
 
   @impl true
